@@ -208,7 +208,7 @@ python main.py --config configs/default.yaml --run-all
 #### Generate Program Code and Documentation
 
 ```bash
-python scripts/run_generation.py \
+python notebooks/run_generation.py \
   --task program \
   --model codegen-350m \
   --output_dir ./outputs
@@ -217,7 +217,7 @@ python scripts/run_generation.py \
 #### Build FAISS & Tree-sitter Indices
 
 ```bash
-python scripts/build_index.py \
+python notebooks/build_index.py \
   --data_dir ./data/parsed \
   --output_dir ./index \
   --index_type faiss_ast_hybrid
@@ -226,7 +226,7 @@ python scripts/build_index.py \
 #### Run Hybrid RAG Retrieval Evaluation
 
 ```bash
-python scripts/evaluate_rag.py \
+python notebooks/evaluate_rag.py \
   --index_dir ./index \
   --top_k 5 \
   --eval_dataset spider
@@ -235,7 +235,7 @@ python scripts/evaluate_rag.py \
 #### Fine-tune Model with LoRA
 
 ```bash
-python scripts/fine_tune.py \
+python notebooks/fine_tune.py \
   --base_model codegen-350m \
   --dataset ./data/training \
   --output_dir ./models/fine_tuned \
@@ -245,7 +245,7 @@ python scripts/fine_tune.py \
 #### Run Comparative Benchmarks
 
 ```bash
-python scripts/benchmark.py \
+python notebooks/benchmark.py \
   --config configs/benchmark.yaml \
   --save_results ./outputs/benchmarks
 ```
@@ -256,75 +256,59 @@ python scripts/benchmark.py \
 
 ```
 Emasters_Group-2_CapstoneProject/
-│
-├── configs/                          # Configuration files
-│   ├── default.yaml                  # Default pipeline config
-│   ├── benchmark.yaml                # Benchmarking config
-│   └── models.yaml                   # Model specifications
-│
-├── src/                              # Source code modules
-│   ├── config_loader.py              # YAML config parser (Step 1)
-│   ├── dataset_loader.py             # Dataset loader (Step 2)
-│   ├── models/                       # Model loaders & tokenizers (Step 3)
+|
+├── configs/
+│   ├── config.yaml                    # Step 1: Configs for paths, hyperparams, and model checkpoints
+│   └── logging.yaml                   # Logging configuration
+├── data/
+│   ├── raw/                           # Step 2: Datasets (Spider, BirdBench, CoDocBench)
+│   ├── processed/                     # Preprocessed tokenized/formatted datasets
+│   └── indices/                       # Saved FAISS & Tree-sitter AST indices
+├── models/
+│   ├── checkpoints/                   # Saved fine-tuned CodeGen-350M checkpoints
+│   └── tokenizers/                    # Saved tokenizer configurations
+├── notebooks/                         # Interactive workflow & fine-tuning
+│   ├── 01_data_exploration.ipynb      # Step 2: Dataset EDA
+│   ├── 02_finetune_codegen.ipynb      # Step 3-7: Fine-tuning CodeGen-350M on tasks
+│   ├── 03_embedding_indexing.ipynb    # Step 8-9: Vector DB & AST Tree-sitter setup
+│   └── 04_rag_and_evaluation.ipynb    # Step 10-14: RAG Pipeline execution & evaluation
+├── outputs/
+│   ├── logs/                          # Run logs
+│   ├── metrics/                       # Step 14: Saved evaluation metrics (JSON/CSV)
+│   └── plots/                         # Step 14: Generated comparison charts & visualizations
+├── src/                               # Production source code
+│   ├── __init__.py
+│   ├── config.py                      # Step 1: Config parser module
+│   ├── data/
 │   │   ├── __init__.py
-│   │   ├── codegen_loader.py
-│   │   └── tokenizer.py
-│   ├── generators/                   # Task generators (Steps 4-7)
-│   │   ├── program_generator.py
-│   │   ├── doc_generator.py
-│   │   ├── sql_generator.py
-│   │   └── commit_generator.py
-│   ├── embeddings/                   # Vector embeddings (Step 8)
-│   │   ├── code_embedder.py
-│   │   └── embedding_utils.py
-│   ├── indexing/                     # Dual indexing (Steps 9a-9b)
-│   │   ├── faiss_indexer.py
-│   │   ├── ast_indexer.py
-│   │   └── hybrid_indexer.py
-│   ├── rag/                          # RAG pipeline (Steps 10-11)
-│   │   ├── retriever.py
-│   │   ├── prompt_builder.py
-│   │   └── context_injector.py
-│   └── evaluation/                   # Metrics & evaluation (Steps 12-14)
-│       ├── scorer.py
-│       ├── metrics.py
-│       └── visualizer.py
-│
-├── scripts/                          # Command-line execution
-│   ├── run_generation.py
-│   ├── build_index.py
-│   ├── evaluate_rag.py
-│   ├── fine_tune.py
-│   ├── benchmark.py
-│   └── utils.py
-│
-├── tests/                            # Unit & integration tests
-│   ├── test_generators.py
-│   ├── test_indexing.py
-│   ├── test_rag.py
-│   └── test_evaluation.py
-│
-├── data/                             # Datasets directory
-│   ├── spider/
-│   ├── birdBench/
-│   ├── codocbench/
-│   └── parsed/
-│
-├── outputs/                          # Results & visualizations
-│   ├── metrics/
-│   ├── charts/
-│   ├── logs/
-│   └── benchmarks/
-│
-├── models/                           # Pre-trained & fine-tuned models
-│   ├── fine_tuned/
-│   └── checkpoints/
-│
-├── requirements.txt                  # Python dependencies
-├── main.py                           # Main entry point
-├── CONTRIBUTING.md                   # Contribution guidelines
-├── LICENSE                           # MIT License
-└── README.md                         # This file
+│   │   └── loader.py                  # Step 2: Load Spider, BirdBench, CoDocBench
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── codegen_loader.py          # Step 3: Tokenizer & CodeGen-350M loader
+│   ├── tasks/                         # Steps 4–7: Generation and Task Evaluation
+│   │   ├── __init__.py
+│   │   ├── program_gen.py             # Program Generation (BLEU, CodeBLEU, Acc)
+│   │   ├── doc_gen.py                 # Doc Generation (BLEU, BERTScore)
+│   │   ├── text_to_sql.py             # Text-to-SQL (Exec Accuracy, Exact Match)
+│   │   └── commit_gen.py              # Commit Message Gen (BLEU, ROUGE)
+│   ├── indexing/                      # Steps 8–9: Vector & AST Indexing
+│   │   ├── __init__.py
+│   │   ├── embeddings.py              # Step 8: Code LM Embeddings
+│   │   ├── semantic_index.py          # Step 9a: FAISS Index Manager
+│   │   └── ast_index.py               # Step 9b: Tree-sitter AST Indexer
+│   ├── rag/                           # Steps 10–12: Retrieval & RAG Pipeline
+│   │   ├── __init__.py
+│   │   ├── retriever.py               # Step 10: Top-K Similarity Retrieval
+│   │   └── pipeline.py                # Step 11-12: Prompt Builder & Output Generator
+│   └── evaluation/                    # Steps 13–14: Comprehensive Evaluation
+│       ├── __init__.py
+│       ├── metrics.py                 # CodeBLEU, BERTScore, Execution Accuracy, ROUGE
+│       ├── comparator.py              # Step 13: Small Code LM vs LLM vs LLM + RAG
+│       └── visualization.py           # Step 14: Plotting and reporting functions
+├── .gitignore
+├── README.md
+├── requirements.txt                   # Dependencies (transformers, faiss-cpu, tree-sitter, etc.)
+└── main.py                            # End-to-end execution script
 ```
 
 ---
