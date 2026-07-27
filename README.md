@@ -386,24 +386,11 @@ We welcome contributions! Please follow these guidelines:
 3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. **Open** a Pull Request
-
-For detailed guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md)
-
 ---
 
 ## 📜 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📞 Support & Contact
-
-| Item | Details |
-|---|---|
-| **Issues** | Open an issue on [GitHub Issues](https://github.com/Rithusravya/Emasters_Group-2_CapstoneProject/issues) |
-| **Discussions** | Join [GitHub Discussions](https://github.com/Rithusravya/Emasters_Group-2_CapstoneProject/discussions) |
-| **Documentation** | Check the [Wiki](https://github.com/Rithusravya/Emasters_Group-2_CapstoneProject/wiki) |
 
 ---
 
