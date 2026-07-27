@@ -1,0 +1,28 @@
+project:
+  name: "CodeGen-Pipeline"
+  device: "cuda" # Default to CUDA, fallback to CPU automatically
+
+model:
+  name_or_path: "Salesforce/codegen-350M-multi"
+  max_length: 512
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: ["qkv_proj"]
+
+datasets:
+  codeparrot: "codeparrot/github-code"
+  spider: "spider"
+  birdbench: "bird_bench"
+  codocbench: "kunpai/codocbench"
+
+indexing:
+  top_k: 3
+  vector_dim: 1024
+
+outputs:
+  metrics_dir: "outputs/metrics"
+  plots_dir: "outputs/plots"
+  checkpoints_dir: "models/checkpoints/codegen_350m_multi_lora"

@@ -54,32 +54,32 @@ Combines **semantic vector search** with **exact structural parsing** to deliver
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ Phase 1: Environment & System Setup                             │
-│  • Load Configuration (YAML, GPU, System Paths)                │
-│  • Load Datasets (Spider, BirdBench, CoDocBench)               │
-│  • Load Base Model (CodeGen-350M Tokenizer & Weights)          │
+│  • Load Configuration (YAML, GPU, System Paths)                 │
+│  • Load Datasets (Spider, BirdBench, CoDocBench)                │
+│  • Load Base Model (CodeGen-350M Tokenizer & Weights)           │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │ Phase 2: Core Task Pipelines                                    │
-│  • Program Generation (BLEU, CodeBLEU, Pass@k)                 │
-│  • Documentation Generation (BLEU, BERTScore)                  │
-│  • Text-to-SQL Generation (Execution Acc, Exact Match)         │
-│  • Commit Message Generation (BLEU, ROUGE)                     │
+│  • Program Generation (BLEU, CodeBLEU, Pass@k)                  │
+│  • Documentation Generation (BLEU, BERTScore)                   │
+│  • Text-to-SQL Generation (Execution Acc, Exact Match)          │
+│  • Commit Message Generation (BLEU, ROUGE)                      │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│ Phase 3: Semantic Indexing & RAG Engine                        │
-│  • Embedding Generation (Code LM Vector Embeddings)            │
-│  • Dual Indexing: FAISS (Vector) + Tree-sitter (AST)          │
-│  • Top-K Retrieval Engine                                      │
-│  • Context Injection Pipeline (Prompt Builder + LLM Aug.)      │
+│ Phase 3: Semantic Indexing & RAG Engine                         │
+│  • Embedding Generation (Code LM Vector Embeddings)             │
+│  • Dual Indexing: FAISS (Vector) + Tree-sitter (AST)            │
+│  • Top-K Retrieval Engine                                       │
+│  • Context Injection Pipeline (Prompt Builder + LLM Aug.)       │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │ Phase 4: Evaluation & Persistence                               │
 │  • Generated Output Parsing                                     │
-│  • Model Comparison (Base vs LLM vs Fine-Tuned+RAG)            │
-│  • Save Results & Visualization (Metrics, Charts, Logs)        │
+│  • Model Comparison (Base vs LLM vs Fine-Tuned+RAG)             │
+│  • Save Results & Visualization (Metrics, Charts, Logs)         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -200,7 +200,7 @@ python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}')"
 ### Option 1: Run Complete End-to-End Pipeline
 
 ```bash
-python main.py --config configs/default.yaml --run-all
+python main.py --config configs/config.yaml --run-all
 ```
 
 ### Option 2: Run Individual Modules
@@ -284,7 +284,8 @@ Emasters_Group-2_CapstoneProject/
 │   │   └── loader.py                  # Step 2: Load Spider, BirdBench, CoDocBench
 │   ├── models/
 │   │   ├── __init__.py
-│   │   └── codegen_loader.py          # Step 3: Tokenizer & CodeGen-350M loader
+│   │   └── codegen_loader_small_model.ipynb   # Step 3: Tokenizer & CodeGen-350M loader
+|   |   └── finetuned_LoRa.ipynb          
 │   ├── tasks/                         # Steps 4–7: Generation and Task Evaluation
 │   │   ├── __init__.py
 │   │   ├── program_gen.py             # Program Generation (BLEU, CodeBLEU, Acc)
@@ -298,84 +299,53 @@ Emasters_Group-2_CapstoneProject/
 │   │   └── ast_index.py               # Step 9b: Tree-sitter AST Indexer
 │   ├── rag/                           # Steps 10–12: Retrieval & RAG Pipeline
 │   │   ├── __init__.py
-│   │   ├── retriever.py               # Step 10: Top-K Similarity Retrieval
-│   │   └── pipeline.py                # Step 11-12: Prompt Builder & Output Generator
+│   │   ├── rag_retriever.ipynb               # Step 10: Top-K Similarity Retrieval
+│   │   └── rag_pipeline.ipynb                # Step 11-12: Prompt Builder & Output Generator
 │   └── evaluation/                    # Steps 13–14: Comprehensive Evaluation
 │       ├── __init__.py
-│       ├── metrics.py                 # CodeBLEU, BERTScore, Execution Accuracy, ROUGE
-│       ├── comparator.py              # Step 13: Small Code LM vs LLM vs LLM + RAG
-│       └── visualization.py           # Step 14: Plotting and reporting functions
+│       ├── metrics.ipynb                 # CodeBLEU, BERTScore, Execution Accuracy, ROUGE
+│       ├── comparator.ipynb              # Step 13: Small Code LM vs LLM vs LLM + RAG
+│       └── visualizer.ipynb           # Step 14: Plotting and reporting functions
 ├── .gitignore
 ├── README.md
 ├── requirements.txt                   # Dependencies (transformers, faiss-cpu, tree-sitter, etc.)
-└── main.py                            # End-to-end execution script
+└── main.ipynb                            # End-to-end execution script
 ```
 
 ---
 
-## ⚙️ Configuration (configs/default.yaml)
+## ⚙️ Configuration (configs/config.yaml)
 
 ```yaml
 # System Configuration
-system:
-  device: "cuda"                    # GPU device (cuda/cpu)
-  seed: 42                          # Random seed for reproducibility
-  log_level: "INFO"                 # Logging level
-  num_workers: 4                    # DataLoader workers
-  pin_memory: true                  # CUDA memory pinning
+syproject:
+  name: "CodeGen-Pipeline"
+  device: "cuda" # Default to CUDA, fallback to CPU automatically
 
-# Model Configuration
 model:
-  name: "Salesforce/codegen-350M-mono"    # Base model
-  quantization: "8bit"              # Quantization type (8bit/16bit/none)
-  max_length: 512                   # Maximum token length
-  batch_size: 32                    # Batch size
-  device_map: "auto"                # Auto device mapping
+  name_or_path: "Salesforce/codegen-350M-multi"
+  max_length: 512
 
-# Fine-tuning Configuration (PEFT/LoRA)
-fine_tune:
-  enabled: true
-  method: "lora"                    # Adapter method
-  lora_rank: 16                     # LoRA rank
-  lora_alpha: 32                    # LoRA alpha
-  dropout: 0.05                     # Dropout probability
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: ["qkv_proj"]
 
-# RAG Configuration
-rag:
-  top_k: 5                          # Number of top-k results
-  faiss_index_type: "IndexFlatIP"   # FAISS index type
-  ast_parser_language: "python"     # AST parser language
-  embedding_dim: 384                # Embedding dimension
-
-# Evaluation Configuration
-evaluation:
-  metrics:
-    - "pass_at_k"
-    - "codebleu"
-    - "bertscore"
-    - "exact_match"
-    - "execution_accuracy"
-  pass_at_k: [1, 5, 10]             # Pass@k variants
-  timeout_seconds: 10               # Code execution timeout
-
-# Dataset Configuration
 datasets:
-  spider:
-    path: "./data/spider"
-    split: "train"
-  birdBench:
-    path: "./data/birdBench"
-    split: "train"
-  codocbench:
-    path: "./data/codocbench"
-    split: "train"
+  codeparrot: "codeparrot/github-code"
+  spider: "spider"
+  birdbench: "bird_bench"
+  codocbench: "kunpai/codocbench"
 
-# Logging & Output
-logging:
-  save_dir: "./outputs"
-  save_metrics: true
-  save_visualizations: true
-  tensorboard: true
+indexing:
+  top_k: 3
+  vector_dim: 1024
+
+outputs:
+  metrics_dir: "outputs/metrics"
+  plots_dir: "outputs/plots"
+  checkpoints_dir: "models/checkpoints/codegen_350m_multi_lora"
 ```
 
 ---
@@ -384,18 +354,24 @@ logging:
 
 ### Python Packages
 
-| Package | Version | Purpose |
-|---|---|---|
-| `torch` | >=2.0.0 | Deep learning framework |
-| `transformers` | >=4.30.0 | HuggingFace model hub |
-| `peft` | >=0.4.0 | Parameter-efficient fine-tuning |
-| `faiss-gpu` | >=1.7.3 | Vector similarity search |
-| `tree-sitter` | >=0.20.0 | AST parsing |
-| `pyyaml` | >=6.0 | Configuration management |
-| `numpy` | >=1.24.0 | Numerical computing |
-| `pandas` | >=1.5.0 | Data manipulation |
-| `scikit-learn` | >=1.2.0 | Machine learning utilities |
-| `evaluate` | >=0.4.0 | Metrics evaluation |
+| Package | Version | Purpose                                                                                                        |
+|---|---|----------------------------------------------------------------------------------------------------------------|
+|`torch`| 2.5.1 | Core deep learning framework for building, training, and running neural networks.                              |
+|`transformers`| 4.46.3 | Provides pre-trained transformer models (e.g., BERT, CodeBERT, Llama, T5) for NLP and code intelligence tasks. |
+|`peft`| 0.13.2 | Enables Parameter-Efficient Fine-Tuning (PEFT) techniques such as LoRA, reducing training time and memory usage. |
+|`datasets`| 3.1.0 | Loads, preprocesses, and manages large-scale datasets efficiently for machine learning workflows.              |
+|`faiss-cpu`| 1.9.0 | Performs fast similarity search and nearest-neighbor retrieval on CPU, commonly used in Retrieval-Augmented Generation (RAG).                                                                                                               |
+|`tree-sitter`| 0.23.2 | Parses source code into Abstract Syntax Trees (ASTs) for syntax-aware code analysis.                                                                                                               |
+|`tree-sitter-python`| 0.23.6 | Python language grammar for Tree-sitter, enabling parsing of Python source code.                                                                                                               |
+|`codebleu`| 0.7.0 | Computes CodeBLEU, an evaluation metric that measures the quality of generated code using syntax and semantics.                                                                                                               |
+|`codebert-score`| 0.3.13 | Evaluates semantic similarity between generated and reference code using CodeBERT embeddings.                                                                                                               |
+|`evaluate`| 0.4.3 | Hugging Face library for computing standard machine learning and NLP evaluation metrics.                                                                                                               |
+|`rouge-score`| 0.1.2 | Calculates ROUGE metrics to measure overlap between generated and reference text.                                                                                                               |
+|`nltk`| 3.9.1 |  Natural Language Toolkit for text preprocessing, tokenization, stemming, and linguistic analysis.                                                                                                              |
+|`PyYAML`| 6.0.2 |      Reads and writes YAML configuration files commonly used in ML projects.                                                                                                          |
+|`matplotlib`| 3.10.0 |  Creates plots and visualizations for training progress, evaluation metrics, and data analysis.                                                                                                              |
+|`seaborn`| 0.13.2 |    Provides high-level statistical visualization built on top of Matplotlib.                                                                                                            |
+|`numpy`| 2.1.3 |    Fundamental numerical computing library for array operations, linear algebra, and scientific computing.                                                                                                            |
 
 See `requirements.txt` for complete dependency list.
 
@@ -446,18 +422,9 @@ If you use this CodeGen Engineering System in your research, please cite:
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Salesforce**: CodeGen model
-- **Meta**: Tree-sitter parsing library
-- **Facebook**: FAISS vector search
-- **HuggingFace**: Transformers & evaluation libraries
-
----
-
 <div align="center">
 
-**Built with ❤️ by Emasters Group 2**
+**Built with ❤️ by IIIT-H Emasters Group 2**
 
 [⬆ Back to Top](#-codegen-engineering-system-end-to-end-pipeline--evaluation-engine)
 
