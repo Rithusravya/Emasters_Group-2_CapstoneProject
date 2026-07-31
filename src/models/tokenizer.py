@@ -1,0 +1,20 @@
+"""
+Step 3 (tokenizer half) — Load and configure the tokenizer for the small code-LM.
+Kept separate from codegen_loader.py so tests/tools can grab just the tokenizer
+without pulling in torch/model weights.
+"""
+from __future__ import annotations
+
+from src.config_loader import CFG
+
+
+def load_tokenizer(model_name: str | None = None):
+    from transformers import AutoTokenizer
+
+    model_name = model_name or CFG.model.name
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        # codegen-350M-multi ships without a pad token; reuse eos_token so batched
+        # generation / training don't error out on padding.
+        tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
