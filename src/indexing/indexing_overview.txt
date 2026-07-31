@@ -1,0 +1,101 @@
+Step 9 — Semantic Indexing Overview
+==================================
+
+This document focuses on Step 9 of the pipeline: Semantic Indexing and its related files.
+
+Purpose
+-------
+Step 9 builds a searchable vector index from generated code embeddings so the system can retrieve the most relevant code snippets for a given query or generation task.
+
+Main Goal
+---------
+The main objective of Step 9 is to convert code representations into a format that supports fast and meaningful similarity search.
+
+Related Files
+-------------
+The Step 9 work is connected to the following files and folders currently present in the project:
+
+- src/__init__.py
+  - Project package initializer
+
+- src/embeddings/
+  - The embeddings package directory for embedding-related implementation
+
+- src/indexing/semantic_index.ipynb
+  - Notebook for semantic indexing workflow and vector-based retrieval logic
+
+- src/indexing/ast_index.ipynb
+  - Notebook for AST-based indexing and structural retrieval work
+
+- src/indexing/embeddings.ipynb
+  - Notebook related to embedding generation and embedding-based processing
+
+- src/indexing/__init__.ipynb
+  - Notebook initializer for the indexing module
+
+- src/rag/
+  - Folder for retrieval and RAG-related components
+
+What Step 9 Does
+----------------
+1. Takes code embeddings produced in the embedding stage
+2. Stores them in a vector-based index
+3. Supports nearest-neighbor similarity search
+4. Returns the top-k most relevant code chunks for downstream retrieval
+
+Key Responsibilities
+-------------------
+- Build a semantic index over the code corpus
+- Store embeddings with associated metadata
+- Retrieve the most similar code snippets for a given input
+- Support ranking and top-k retrieval for later RAG steps
+
+Expected Output
+---------------
+- A semantic index containing vector representations of code documents
+- Ranked retrieval results for semantically similar code snippets
+- A retrieval-ready structure that can be used by the RAG pipeline
+
+Workflow Summary
+----------------
+1. Load or generate code embeddings
+2. Normalize and prepare embedding vectors
+3. Insert them into the semantic index
+4. Query the index for similar items
+5. Pass retrieved results into the context injection pipeline
+
+Current Status
+--------------
+This step is part of the ongoing indexing and retrieval implementation and is still under development.
+
+Visual Diagram
+--------------
+Here is a simple pictorial representation of the indexing-related files and how they connect:
+
+[ src/__init__.py ]
+        |
+        v
+[ src/embeddings/ ]
+        |
+        v
+[ src/indexing/embeddings.ipynb ]
+        |
+        v
+[ src/indexing/semantic_index.ipynb ]
+        |
+        v
+[ src/indexing/ast_index.ipynb ]
+        |
+        v
+[ src/rag/ ]
+
+Flow summary:
+- src/embeddings/ contains embedding-related implementation
+- embeddings.ipynb prepares or works with embedding data
+- semantic_index.ipynb builds the vector-based semantic index
+- ast_index.ipynb adds structural indexing
+- rag/ uses indexed information for retrieval-augmented generation
+
+Scope Note
+----------
+Step 9 is focused on semantic retrieval and vector search. It is separate from model generation itself, but it is essential for improving generation quality through retrieval augmentation.
