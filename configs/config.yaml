@@ -3,7 +3,7 @@ project:
   device: "cuda" # Default to CUDA, fallback to CPU automatically
 
 model:
-  name_or_path: "Salesforce/codegen-350M-multi"
+  name_or_path: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
   max_length: 512
 
 lora:
