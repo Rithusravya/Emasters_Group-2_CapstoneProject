@@ -4,7 +4,7 @@ project:
 
 model:
   name_or_path: "Qwen/Qwen2.5-Coder-7B-Instruct"   # base small code LM (matches README)
-  embedding_name: "sentence-transformers/all-MiniLM-L6-v2"  # used for FAISS embeddings
+  embedding_name: "BAAI/bge-m3"  # used for FAISS embeddings
   max_length: 512
 
 lora:

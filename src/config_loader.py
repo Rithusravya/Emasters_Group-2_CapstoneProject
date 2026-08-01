@@ -22,7 +22,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     },
     "model": {
         "name_or_path": "Qwen/Qwen2.5-Coder-7B-Instruct",
-        "embedding_name": "sentence-transformers/all-MiniLM-L6-v2",
+        "embedding_name": "BAAI/bge-m3",
         "max_length": 512,
     },
     "lora": {
