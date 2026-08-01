@@ -1,6 +1,6 @@
 project:
   name: "CodeGen-Pipeline"
-  device: "cuda"   # Falls back to CPU automatically if CUDA isn't available
+  device: "auto"   # Falls back to CPU automatically if CUDA isn't available
 
 model:
   name_or_path: "Qwen/Qwen2.5-Coder-7B-Instruct"   # base small code LM (matches README)
@@ -11,11 +11,11 @@ lora:
   r: 16
   lora_alpha: 32
   lora_dropout: 0.05
-  # NOTE: target module names depend on the base model's attention layer naming.
-  # "qkv_proj" matches some architectures (e.g. Phi/Qwen); if you swap in a GPT-2 /
-  # CodeGen-style checkpoint, this is usually ["c_attn"] instead — check
-  # `model.named_modules()` on your chosen base model before fine-tuning.
-  target_modules: ["qkv_proj"]
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
 
 data:
   raw_dir: "data/raw"

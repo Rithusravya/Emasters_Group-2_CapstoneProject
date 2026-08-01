@@ -29,7 +29,12 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "r": 16,
         "lora_alpha": 32,
         "lora_dropout": 0.05,
-        "target_modules": ["qkv_proj"],
+        "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        ],
     },
     "data": {
         "raw_dir": "data/raw",
