@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 class CodeGenModelWrapper:
     def __init__(
         self,
-        model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct",
+        model_name: str = "Qwen/Qwen2.5-Coder-3B",
         device: str = "auto",
         max_length: int = 512,
         use_lora: bool = True,
@@ -26,7 +26,12 @@ class CodeGenModelWrapper:
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        base_model = AutoModelForCausalLM.from_pretrained(model_name).to(self.device)
+        base_model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16,
+        )
+
+        base_model.to(self.device)
 
         self.use_lora = use_lora
         if use_lora:

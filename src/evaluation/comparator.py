@@ -13,8 +13,4 @@ class ArchitectureComparator:
     def compare_architectures(
         results: Optional[Dict[str, Dict[str, float]]] = None,
     ) -> Dict[str, Dict[str, float]]:
-        """If `results` (real per-architecture metrics collected during this
-        pipeline run) is provided, return it as-is. Otherwise fall back to the
-        README's reference benchmark numbers so downstream plotting/reporting
-        code always has something to render."""
         return results if results else dict(_DEMO_RESULTS)

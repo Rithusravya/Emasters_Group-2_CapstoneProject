@@ -21,7 +21,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "device": "cuda",
     },
     "model": {
-        "name_or_path": "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "name_or_path": "Qwen/Qwen2.5-Coder-3B",
         "embedding_name": "BAAI/bge-m3",
         "max_length": 512,
     },

@@ -12,7 +12,7 @@ import logging
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from src.config import config
+from src.config_loader import CFG
 
 
 logging.basicConfig(level=logging.INFO)

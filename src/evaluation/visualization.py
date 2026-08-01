@@ -34,7 +34,7 @@ class ResultsVisualizer:
         ax.bar(x + width / 2, exec_acc, width, label="Execution Accuracy", color="#ff7f0e")
 
         ax.set_ylabel("Score")
-        ax.set_title("Step 13 & 14: Evaluation & Model Comparison")
+        ax.set_title("Evaluation & Model Comparison")
         ax.set_xticks(x)
         ax.set_xticklabels(archs, rotation=15, ha="right")
         ax.set_ylim(0, 1.0)

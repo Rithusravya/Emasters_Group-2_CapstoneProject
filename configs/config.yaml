@@ -3,7 +3,7 @@ project:
   device: "auto"   # Falls back to CPU automatically if CUDA isn't available
 
 model:
-  name_or_path: "Qwen/Qwen2.5-Coder-7B-Instruct"   # base small code LM (matches README)
+  name_or_path: "Qwen/Qwen2.5-Coder-3B"   # base small code LM (matches README)
   embedding_name: "BAAI/bge-m3"  # used for FAISS embeddings
   max_length: 512
 

@@ -34,16 +34,6 @@ class CodeMetricsEvaluator:
             return 0.0
 
     @staticmethod
-    def calculate_rouge_l(predictions: List[str], references: List[str]) -> float:
-        try:
-            from rouge_score import rouge_scorer
-            scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
-            scores = [scorer.score(r, p)["rougeL"].fmeasure for p, r in zip(predictions, references)]
-            return sum(scores) / len(scores) if scores else 0.0
-        except ImportError:
-            return 0.0
-
-    @staticmethod
     def exact_match_accuracy(predictions: List[str], references: List[str]) -> float:
         if not predictions:
             return 0.0
@@ -61,12 +51,9 @@ class CodeMetricsEvaluator:
 
     @staticmethod
     def evaluate_generation(predictions: List[str], references: List[str], lang: str = "python") -> Dict[str, Any]:
-        """Convenience bundle: runs every applicable metric on one (predictions,
-        references) pair and returns them as a single results dict."""
         return {
             "n": len(predictions),
             "bleu": CodeMetricsEvaluator.calculate_bleu(predictions, references),
-            "rouge_l": CodeMetricsEvaluator.calculate_rouge_l(predictions, references),
             "codebleu": CodeMetricsEvaluator.calculate_codebleu(predictions, references, lang=lang),
             "code_bertscore": CodeMetricsEvaluator.calculate_code_bertscore(predictions, references, lang=lang),
             "exact_match": CodeMetricsEvaluator.exact_match_accuracy(predictions, references),
