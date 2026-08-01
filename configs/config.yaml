@@ -3,7 +3,7 @@ project:
   device: "cuda"   # Falls back to CPU automatically if CUDA isn't available
 
 model:
-  name_or_path: "Salesforce/codegen-350M-multi"   # base small code LM (matches README)
+  name_or_path: "Qwen/Qwen2.5-Coder-7B-Instruct"   # base small code LM (matches README)
   embedding_name: "sentence-transformers/all-MiniLM-L6-v2"  # used for FAISS embeddings
   max_length: 512
 
@@ -38,4 +38,4 @@ outputs:
   metrics_dir: "outputs/metrics"
   plots_dir: "outputs/plots"
   logs_dir: "outputs/logs"
-  checkpoints_dir: "models/checkpoints/codegen_350m_multi_lora"
+  checkpoints_dir: "models/checkpoints/Qwen2.5-Coder_lora"

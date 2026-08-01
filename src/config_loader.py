@@ -21,7 +21,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "device": "cuda",
     },
     "model": {
-        "name_or_path": "Salesforce/codegen-350M-multi",
+        "name_or_path": "Qwen/Qwen2.5-Coder-7B-Instruct",
         "embedding_name": "sentence-transformers/all-MiniLM-L6-v2",
         "max_length": 512,
     },
