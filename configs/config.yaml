@@ -1,28 +1,41 @@
 project:
   name: "CodeGen-Pipeline"
-  device: "cuda" # Default to CUDA, fallback to CPU automatically
+  device: "cuda"   # Falls back to CPU automatically if CUDA isn't available
 
 model:
-  name_or_path: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  name_or_path: "Salesforce/codegen-350M-multi"   # base small code LM (matches README)
+  embedding_name: "sentence-transformers/all-MiniLM-L6-v2"  # used for FAISS embeddings
   max_length: 512
 
 lora:
   r: 16
   lora_alpha: 32
   lora_dropout: 0.05
+  # NOTE: target module names depend on the base model's attention layer naming.
+  # "qkv_proj" matches some architectures (e.g. Phi/Qwen); if you swap in a GPT-2 /
+  # CodeGen-style checkpoint, this is usually ["c_attn"] instead — check
+  # `model.named_modules()` on your chosen base model before fine-tuning.
   target_modules: ["qkv_proj"]
 
-datasets:
-  codeparrot: "codeparrot/github-code"
-  spider: "spider"
-  birdbench: "bird_bench"
-  codocbench: "kunpai/codocbench"
+data:
+  raw_dir: "data/raw"
+  # dataset key -> subfolder name under raw_dir. Each subfolder may contain
+  # multiple .jsonl/.json files; the loader merges all of them.
+  datasets:
+    spider: "Spider"
+    birdbench: "BirdBench"
+    codocbench: "CoDocBench"
+  sample_limit: 200   # cap per-dataset rows loaded (keeps notebooks fast)
+
+rag:
+  codeparrot_subset_size: 500
 
 indexing:
   top_k: 3
-  vector_dim: 1024
+  vector_dim: 384   # must match model.embedding_name's output dimension
 
 outputs:
   metrics_dir: "outputs/metrics"
   plots_dir: "outputs/plots"
+  logs_dir: "outputs/logs"
   checkpoints_dir: "models/checkpoints/codegen_350m_multi_lora"
