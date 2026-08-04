@@ -1,247 +1,147 @@
-"""
-code_embedder.py
-
-Generates dense embeddings for code, SQL, and natural language.
-
-Author : Emasters Group-2
-"""
-
-from typing import List, Union
 import logging
-
+from typing import List, Union, Any
 import numpy as np
-from sentence_transformers import SentenceTransformer
+import pandas as pd
+import torch
+from transformers import AutoTokenizer, AutoModel
 
-from src.config_loader import CFG
-
-
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class CodeEmbedder:
-    """
-    Wrapper around SentenceTransformer for embedding generation.
-
-    Example
-    -------
-    >>> embedder = CodeEmbedder()
-    >>> vector = embedder.encode("Write a Python function")
-    """
+    """Generates vector embeddings for code and queries with fp16/bf16 precision and batching."""
 
     def __init__(
-        self,
-        model_name: str = None,
-        device: str = None,
-        normalize: bool = None,
+            self,
+            model_name: Union[str, Any] = "BAAI/bge-small-en-v1.5",
+            device: str = None,
+            dtype: torch.dtype = torch.float16,
+            tokenizer: AutoTokenizer = None,
+            query_instruction: str = "Represent this sentence for searching relevant code: "
     ):
+        self.query_instruction = query_instruction
 
-        self.model_name = (
-            model_name
-            if model_name
-            else config.embedding.model_name
+        # 1. Resolve Computing Device
+        if device:
+            self.device = device
+        elif torch.cuda.is_available():
+            self.device = "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
+
+        # Use float16/bf16 only on CUDA; default to float32 for CPU/MPS stability
+        if self.device == "cuda":
+            self.dtype = torch.float16
+        elif self.device == "mps":
+            self.dtype = torch.float16
+        else:
+            self.dtype = torch.float32
+
+        # 2. Resolve Model & Tokenizer
+        if isinstance(model_name, str):
+            logger.info(f"Loading embedder model '{model_name}' on {self.device}...")
+            self.model_name = model_name
+            self.tokenizer = tokenizer or AutoTokenizer.from_pretrained(model_name)
+            self.model = AutoModel.from_pretrained(
+                model_name, torch_dtype=self.dtype
+            ).to(self.device)
+        else:
+            # Pre-loaded model object passed in
+            self.model = model_name.to(self.device)
+            self.model_name = getattr(model_name, "name_or_path", "BAAI/bge-small-en-v1.5")
+
+            # Fallback tokenizer loading if tokenizer was omitted
+            if tokenizer is not None:
+                self.tokenizer = tokenizer
+            else:
+                logger.warning(
+                    f"No tokenizer passed with pre-loaded model. Loading default for '{self.model_name}'."
+                )
+                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+
+        self.model.eval()
+
+    def _extract_text_field(self, item: dict) -> str:
+        """Helper to extract text/code strings across different dataset formats."""
+        candidate_keys = ["code", "SQL", "sql", "query", "question", "text", "instruction", "docstring"]
+        for key in candidate_keys:
+            if key in item and isinstance(item[key], str):
+                return item[key]
+        return str(item)
+
+    def _mean_pooling(self, model_output, attention_mask: torch.Tensor) -> torch.Tensor:
+        """Mean Pooling - Take attention mask into account for correct averaging."""
+        token_embeddings = model_output[0]
+        input_mask_expanded = (
+            attention_mask.unsqueeze(-1).expand(token_embeddings.size()).to(self.dtype)
+        )
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(
+            input_mask_expanded.sum(1), min=1e-9
         )
 
-        self.device = (
-            device
-            if device
-            else config.embedding.device
-        )
-
-        self.normalize = (
-            normalize
-            if normalize is not None
-            else config.embedding.normalize_embeddings
-        )
-
-        logger.info(f"Loading embedding model: {self.model_name}")
-
-        self.model = SentenceTransformer(
-            self.model_name,
-            device=self.device,
-        )
-
-        logger.info("Embedding model loaded successfully.")
-
-    # ---------------------------------------------------
-    # Encode Single Text
-    # ---------------------------------------------------
-
-    def encode(self, text: str) -> np.ndarray:
-        """
-        Encode a single text into an embedding.
-
-        Parameters
-        ----------
-        text : str
-
-        Returns
-        -------
-        numpy.ndarray
-        """
-
-        if not isinstance(text, str):
-            raise TypeError("Input must be a string.")
-
-        embedding = self.model.encode(
-            text,
-            normalize_embeddings=self.normalize,
-            convert_to_numpy=True,
-        )
-
-        return embedding
-
-    # ---------------------------------------------------
-    # Encode Batch
-    # ---------------------------------------------------
-
-    def encode_batch(
-        self,
-        texts: List[str],
-        batch_size: int = None,
-        show_progress_bar: bool = True,
+    def generate_embedding(
+            self,
+            data: Union[str, List[str], pd.DataFrame, List[dict]],
+            is_query: bool = False,
+            normalize: bool = True,
+            batch_size: int = 4
     ) -> np.ndarray:
-        """
-        Encode multiple texts.
+        """Parses input dataset/queries and generates normalized float32 embeddings."""
 
-        Returns
-        -------
-        numpy.ndarray
-            Shape:
-            (num_samples, embedding_dimension)
-        """
+        # 1. Parse Input Data Structures into standard List[str]
+        if isinstance(data, pd.DataFrame):
+            # Check candidate columns in DataFrame
+            col_match = next((c for c in ["code", "SQL", "sql", "query", "question", "text"] if c in data.columns),
+                             None)
+            if col_match:
+                texts = data[col_match].astype(str).tolist()
+            else:
+                texts = data.iloc[:, 0].astype(str).tolist()
+        elif isinstance(data, list):
+            if len(data) == 0:
+                return np.empty((0, self.model.config.hidden_size), dtype=np.float32)
+            if isinstance(data[0], dict):
+                texts = [self._extract_text_field(item) for item in data]
+            else:
+                texts = [str(x) for x in data]
+        elif isinstance(data, str):
+            texts = [data]
+        else:
+            texts = [str(data)]
 
-        if batch_size is None:
-            batch_size = config.embedding.batch_size
+        # 2. Add Query Instruction Prefix if applicable
+        if is_query and self.query_instruction:
+            processed_texts = [f"{self.query_instruction}{t}" for t in texts]
+        else:
+            processed_texts = texts
 
-        embeddings = self.model.encode(
-            texts,
-            batch_size=batch_size,
-            convert_to_numpy=True,
-            normalize_embeddings=self.normalize,
-            show_progress_bar=show_progress_bar,
-        )
+        all_embeddings = []
 
-        return embeddings
+        # 3. Batched Vector Generation
+        for i in range(0, len(processed_texts), batch_size):
+            batch_texts = processed_texts[i: i + batch_size]
 
-    # ---------------------------------------------------
-    # Encode Documents
-    # ---------------------------------------------------
+            inputs = self.tokenizer(
+                batch_texts,
+                padding=True,
+                truncation=True,
+                max_length=512,
+                return_tensors="pt"
+            ).to(self.device)
 
-    def encode_documents(
-        self,
-        documents: List[dict],
-        field: str = "context",
-    ):
-        """
-        Generate embeddings from document dictionaries.
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                sentence_embeddings = self._mean_pooling(outputs, inputs["attention_mask"])
 
-        Parameters
-        ----------
-        documents : list
-            List of dictionaries.
+                if normalize:
+                    sentence_embeddings = torch.nn.functional.normalize(
+                        sentence_embeddings, p=2, dim=1
+                    )
 
-        field : str
-            Which field should be embedded.
+                all_embeddings.append(sentence_embeddings.to(torch.float32).cpu().numpy())
 
-        Returns
-        -------
-        numpy.ndarray
-        """
-
-        texts = [
-            doc.get(field, "")
-            for doc in documents
-        ]
-
-        return self.encode_batch(texts)
-
-    # ---------------------------------------------------
-    # Query Embedding
-    # ---------------------------------------------------
-
-    def encode_query(
-        self,
-        query: str,
-    ) -> np.ndarray:
-        """
-        Encode a user query.
-        """
-
-        return self.encode(query)
-
-    # ---------------------------------------------------
-    # Embedding Dimension
-    # ---------------------------------------------------
-
-    @property
-    def embedding_dimension(self):
-        """
-        Returns embedding size.
-        """
-
-        return self.model.get_sentence_embedding_dimension()
-
-    # ---------------------------------------------------
-    # Similarity
-    # ---------------------------------------------------
-
-    def similarity(
-        self,
-        embedding1: np.ndarray,
-        embedding2: np.ndarray,
-    ) -> float:
-        """
-        Cosine similarity between two vectors.
-        """
-
-        embedding1 = embedding1 / np.linalg.norm(embedding1)
-        embedding2 = embedding2 / np.linalg.norm(embedding2)
-
-        return float(np.dot(embedding1, embedding2))
-
-    # ---------------------------------------------------
-    # Utility
-    # ---------------------------------------------------
-
-    def print_model_info(self):
-
-        print("=" * 60)
-        print("Embedding Model Information")
-        print("=" * 60)
-        print("Model :", self.model_name)
-        print("Device:", self.device)
-        print("Dimension:", self.embedding_dimension)
-        print("Normalize:", self.normalize)
-        print("=" * 60)
-
-
-# ---------------------------------------------------
-# Testing
-# ---------------------------------------------------
-
-if __name__ == "__main__":
-
-    embedder = CodeEmbedder()
-
-    embedder.print_model_info()
-
-    sample = "Write a Python function to reverse a string."
-
-    embedding = embedder.encode(sample)
-
-    print()
-
-    print("Embedding Shape :", embedding.shape)
-
-    print()
-
-    samples = [
-        "Write SQL query",
-        "Generate documentation",
-        "Create commit message",
-    ]
-
-    vectors = embedder.encode_batch(samples)
-
-    print("Batch Shape :", vectors.shape)
+        if all_embeddings:
+            return np.vstack(all_embeddings)
+        return np.empty((0, self.model.config.hidden_size), dtype=np.float32)
