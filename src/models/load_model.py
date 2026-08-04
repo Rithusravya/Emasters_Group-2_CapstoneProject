@@ -6,7 +6,6 @@ from peft import LoraConfig, get_peft_model, PeftModel
 
 logger = logging.getLogger(__name__)
 
-
 class ModelLoader:
     """Loads base models and configures PEFT/LoRA modules on target hardware."""
 
