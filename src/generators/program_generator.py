@@ -1,32 +1,56 @@
-"""
-Step 4 / Task 1.1 — Program synthesis: generate a program for a given problem
-description. Evaluated with Pass@k, CodeBLEU-lite, execution accuracy
-(see src/evaluation/metrics.py).
-"""
-from __future__ import annotations
-from typing import List
+import json
+import logging
+from typing import Optional, Dict, List, Any, Union
+from dataclasses import dataclass, asdict
 
-PROMPT_TEMPLATE = (
-    "# Problem: {problem}\n"
-    "# Language: {language}\n"
-    "# Write a correct, complete solution below.\n"
-)
+import torch
+from transformers import GenerationConfig
+
+logger = logging.getLogger(__name__)
 
 
-def build_prompt(problem: str, language: str = "python") -> str:
-    return PROMPT_TEMPLATE.format(problem=problem, language=language)
+class GenerationPipeline:
+    """Wraps a causal LM + tokenizer for prompt-based generation."""
 
+    def __init__(self, model, tokenizer, config):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.config = config
 
-def synthesize(lm, problem: str, language: str = "python", n: int = 1) -> List[str]:
-    """Generate `n` candidate programs for a problem description using the given
-    CodeGenModel instance (base or RAG-augmented — see src/rag/context_injector.py)."""
-    prompt = build_prompt(problem, language)
-    return lm.generate(prompt, max_new_tokens=256, num_return_sequences=n)
+        self.generation_config = GenerationConfig(
+            max_length=getattr(config, "max_length", 512),
+            temperature=getattr(config, "temperature", 0.2),
+            top_k=getattr(config, "top_k", 50),
+            top_p=getattr(config, "top_p", 0.95),
+            num_return_sequences=1,
+            pad_token_id=tokenizer.pad_token_id,
+            eos_token_id=tokenizer.eos_token_id,
+            do_sample=True,
+            repetition_penalty=1.1,
+        )
 
+    def generate_program(self, prompt: str, clean_output: bool = True) -> str:
+        try:
+            device = next(self.model.parameters()).device
+            inputs = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                truncation=True,
+                max_length=1024,
+            ).to(device)
 
-def synthesize_batch(lm, problems: List[str], language: str = "python") -> List[str]:
-    return [synthesize(lm, p, language, n=1)[0] for p in problems]
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    generation_config=self.generation_config,
+                )
 
+            generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-if __name__ == "__main__":
-    print(build_prompt("Return the maximum value in a list of integers.", "python"))
+            if clean_output and prompt in generated_text:
+                generated_text = generated_text.replace(prompt, "").strip()
+
+            return generated_text
+        except Exception as e:
+            logger.error(f"Error during code generation: {e}")
+            return ""
