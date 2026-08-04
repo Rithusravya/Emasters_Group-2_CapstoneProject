@@ -23,7 +23,7 @@ class PathConfig:
 
 @dataclass
 class ModelConfig:
-    base_model_name: str = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+    base_model_name: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
     embedder_model_name: str = "BAAI/bge-small-en-v1.5"
 
 
