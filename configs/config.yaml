@@ -48,9 +48,9 @@ lora:
   dropout: 0.05
   # Qwen attention + MLP modules
   target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
-  batch_size: 2
+  batch_size: 4
   learning_rate: 0.0003
-  epochs: 2
+  epochs: 5
   output_dir: "models/checkpoints/lora_finetuned"
 
 # Outputs & Evaluation Paths

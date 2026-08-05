@@ -7,6 +7,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class PathConfig:
     data_dir: Path = Path("../data/raw")
@@ -40,9 +41,9 @@ class LoRAConfig:
     dropout: float = 0.05
     bias: str = "none"
     task_type: str = "CAUSAL_LM"
-    batch_size: int = 2
+    batch_size: int = 4
     learning_rate: float = 3e-4
-    epochs: int = 2
+    epochs: int = 5
     output_dir: str = "models/checkpoints/lora_finetuned"
 
 
@@ -50,7 +51,7 @@ class LoRAConfig:
 class EmbeddingConfig:
     max_length: int = 512
     batch_size: int = 32
-    query_instruction: str = "Represent this sentence for searching relevant code: "
+    query_instruction: str = "Represent this sentence for searching relevant code: " # "Represent this sentence for searching relevant code: "
 
 
 @dataclass

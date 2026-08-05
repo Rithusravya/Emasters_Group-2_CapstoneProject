@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Union, Tuple, Optional
 import numpy as np
 import faiss
+import json
 
 logger = logging.getLogger(__name__)
 
