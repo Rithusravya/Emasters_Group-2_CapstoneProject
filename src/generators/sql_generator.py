@@ -1,13 +1,3 @@
-"""
-Step 6 / Task 2 — Text-to-SQL generation
-
-Generate SQL from a natural-language question.
-
-Evaluation:
-- Exact Match
-- Execution Accuracy (when a local SQLite DB is available)
-"""
-
 from __future__ import annotations
 
 import re
@@ -49,10 +39,6 @@ def build_prompt(schema: str, question: str) -> str:
 
 
 def extract_sql(text: str) -> str:
-    """
-    Extract SQL from model output.
-    """
-
     if not text:
         return ""
 
@@ -99,10 +85,6 @@ def generate_sql(lm, schema: str, question: str) -> str:
 
 
 def normalize_sql(sql: str) -> str:
-    """
-    Normalize SQL formatting.
-    """
-
     if not sql:
         return ""
 
@@ -120,17 +102,10 @@ def normalize_sql(sql: str) -> str:
 
 
 def exact_match(pred_sql: str, gold_sql: str) -> bool:
-    """
-    Case-insensitive normalized exact match.
-    """
     return normalize_sql(pred_sql) == normalize_sql(gold_sql)
 
 
 def execute_sql(db_path: str, sql: str) -> Optional[List[tuple]]:
-    """
-    Execute SQL on SQLite database.
-    """
-
     try:
         conn = sqlite3.connect(db_path)
 

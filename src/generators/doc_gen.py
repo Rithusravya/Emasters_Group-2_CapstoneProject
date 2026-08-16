@@ -1,11 +1,7 @@
-"""Task module for code -> docstring generation."""
-
 from src.generators.program_generator import GenerationPipeline
 
 
 class DocGenerator:
-    """Task module for Code Documentation generation."""
-
     def __init__(self, pipeline: GenerationPipeline):
         self.pipeline = pipeline
 

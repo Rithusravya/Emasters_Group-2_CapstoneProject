@@ -1,5 +1,3 @@
-"""Manages a FAISS vector index: creation, search, save, and load."""
-
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -11,14 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class SemanticIndexManager:
-    """Manages FAISS vector index creation, searching, saving, and loading."""
-
     def __init__(self, embedding_dim: int, index_type: str = "Flat"):
-        """
-        Args:
-            embedding_dim: Dimensionality of the embedding vectors (e.g., 384, 768, 1024).
-            index_type: Type of FAISS index ("Flat" for exact inner product/cosine, "L2" for Euclidean).
-        """
         self.embedding_dim = embedding_dim
         self.index_type = index_type
         self.index = self._build_index(embedding_dim, index_type)
@@ -28,7 +19,6 @@ class SemanticIndexManager:
 
     @staticmethod
     def _build_index(embedding_dim: int, index_type: str):
-        """Creates a new FAISS index of the requested type."""
         if index_type == "Flat":
             # Inner Product index, for normalized (cosine-similarity) vectors.
             return faiss.IndexFlatIP(embedding_dim)
@@ -38,7 +28,6 @@ class SemanticIndexManager:
 
     @staticmethod
     def _format_metadata_item(item: Any) -> Dict[str, Any]:
-        """Normalizes various input formats (dict, str, etc.) into a consistent dict."""
         if isinstance(item, dict):
             return item
         return {"code": item if isinstance(item, str) else str(item)}
@@ -48,12 +37,6 @@ class SemanticIndexManager:
         embeddings: np.ndarray,
         corpus: Union[List[str], List[Dict[str, Any]], Any],
     ) -> None:
-        """Adds embedding vectors and their corresponding metadata to the FAISS index.
-
-        Args:
-            embeddings: NumPy array of shape (N, dim) with float32 dtype.
-            corpus: Corresponding code snippets or metadata dictionary items.
-        """
         if len(embeddings) == 0:
             logger.warning("Empty embeddings array passed. Skipping FAISS index population.")
             return
@@ -73,15 +56,6 @@ class SemanticIndexManager:
         )
 
     def search(self, query_embedding: np.ndarray, k: int = 5) -> List[Tuple[Dict[str, Any], float]]:
-        """Searches the index for the top-k nearest neighbors.
-
-        Args:
-            query_embedding: Vector array of shape (1, dim) or (dim,).
-            k: Number of nearest neighbors to retrieve.
-
-        Returns:
-            List of (metadata_dict, similarity_score) tuples.
-        """
         if self.index.ntotal == 0:
             logger.warning("Search attempted on an empty FAISS index.")
             return []
@@ -101,11 +75,9 @@ class SemanticIndexManager:
         ]
 
     def hybrid_search(self, query_embedding: np.ndarray, k: int = 5):
-        """Fallback alias mapping hybrid_search directly to FAISS semantic search."""
         return self.search(query_embedding, k=k)
 
     def save(self, index_path: Union[str, Path], metadata_path: Optional[Union[str, Path]] = None) -> None:
-        """Saves the FAISS index to disk."""
         index_path = Path(index_path)
         index_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -113,7 +85,6 @@ class SemanticIndexManager:
         logger.info(f"FAISS index saved to {index_path}")
 
     def load(self, index_path: Union[str, Path]) -> None:
-        """Loads a FAISS index from disk."""
         index_path = Path(index_path)
         if not index_path.exists():
             raise FileNotFoundError(f"FAISS index file not found: {index_path}")

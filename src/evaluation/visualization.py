@@ -1,5 +1,3 @@
-"""Generates grouped bar-chart comparisons of model metrics, saved as PNGs."""
-
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -12,16 +10,12 @@ OTHER_COLORS = ["#e67e22", "#95a5a6", "#d35400", "#8e44ad"]
 
 
 class ResultVisualizer:
-    """Generates comparison charts saved to the specified output directory."""
-
     def __init__(self, output_dir: str = "output/plots"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _split_metrics_by_scale(results: Dict[str, Dict[str, float]], models: List[str]):
-        """Separates metric names into normalized 0-1 'scores' and everything else,
-        so the two groups aren't squashed onto the same y-axis."""
         all_metrics = sorted({m for scores in results.values() for m in scores})
         score_metrics, other_metrics = [], []
         for metric in all_metrics:
@@ -40,7 +34,6 @@ class ResultVisualizer:
         save_path: Path,
         y_limit: Optional[float] = None,
     ) -> None:
-        """Draws one grouped bar chart (one group of bars per model) and saves it to disk."""
         n_metrics = len(metrics)
         fig, ax = plt.subplots(figsize=(max(8, n_metrics * 1.5), 6))
         x = np.arange(len(models))
@@ -63,7 +56,6 @@ class ResultVisualizer:
         plt.close()
 
     def _print_other_metrics_summary(self, results: Dict[str, Dict[str, float]], models: List[str], metrics: List[str]) -> None:
-        """Prints a plain-text summary of the non-normalized metrics (e.g. counts)."""
         print("\n--- Other Metrics Summary ---")
         for metric in metrics:
             print(f"  {metric}:")
@@ -75,7 +67,6 @@ class ResultVisualizer:
         results: Dict[str, Dict[str, float]],
         save_name: str = "model_comparison.png",
     ) -> Optional[Path]:
-        """Plots grouped bar charts, splitting normalized scores from other metrics."""
         models = list(results.keys())
         if not models:
             print("⚠️ No models to compare.")

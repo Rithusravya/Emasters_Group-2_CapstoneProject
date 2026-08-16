@@ -1,11 +1,7 @@
-"""Task module for Git diff -> commit message generation."""
-
 from src.generators.program_generator import GenerationPipeline
 
 
 class CommitMessageGenerator:
-    """Task module for Git diff to commit message generation."""
-
     def __init__(self, pipeline: GenerationPipeline):
         self.pipeline = pipeline
 

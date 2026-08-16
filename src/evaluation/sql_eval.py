@@ -1,7 +1,3 @@
-"""Spider-style SQL evaluation: exact-match response accuracy and
-result-set execution accuracy, computed against SQLite databases.
-"""
-
 import logging
 import re
 import sqlite3
@@ -12,25 +8,17 @@ logger = logging.getLogger(__name__)
 
 
 class SpiderSQLEvaluator:
-    """Computes:
-    1. Response Accuracy / Exact Match Accuracy
-    2. Execution Accuracy
-    """
-
     def __init__(self, database_root: str):
         self.database_root = Path(database_root)
 
     @staticmethod
     def normalize_sql(sql: str) -> str:
-        """Normalizes SQL for exact-match comparison (lowercase, collapsed
-        whitespace, no trailing semicolon)."""
         if not sql:
             return ""
         sql = re.sub(r"\s+", " ", sql.lower().strip())
         return sql.rstrip(";").strip()
 
     def response_accuracy(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Computes exact-match response accuracy across all records."""
         if not records:
             return {"total": 0, "correct": 0, "response_accuracy": 0.0}
 
@@ -45,7 +33,6 @@ class SpiderSQLEvaluator:
         return {"total": total, "correct": correct, "response_accuracy": correct / total if total else 0.0}
 
     def execute_sql(self, db_path: Path, sql: str) -> Dict[str, Any]:
-        """Executes a single SQL statement (read-only) and returns its result or error."""
         try:
             conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
             cursor = conn.cursor()
@@ -58,14 +45,12 @@ class SpiderSQLEvaluator:
 
     @staticmethod
     def _results_match(gold_result: list, pred_result: list) -> bool:
-        """Compares two result sets order-independently where possible."""
         try:
             return sorted(gold_result) == sorted(pred_result)
         except TypeError:
             return gold_result == pred_result
 
     def execution_accuracy(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Executes gold and predicted SQL for each record and compares result sets."""
         if not records:
             return {"total": 0, "correct": 0, "execution_accuracy": 0.0}
 
@@ -102,7 +87,6 @@ class SpiderSQLEvaluator:
         }
 
     def evaluate(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Computes both response and execution accuracy for a batch of records."""
         response_metrics = self.response_accuracy(records)
         execution_metrics = self.execution_accuracy(records)
 

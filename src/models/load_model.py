@@ -1,7 +1,3 @@
-"""Loads base causal-LM models and configures/trains PEFT (LoRA) adapters
-on whichever hardware is available (CUDA / MPS / CPU).
-"""
-
 import logging
 from pathlib import Path
 from typing import Tuple
@@ -18,8 +14,6 @@ DEFAULT_LORA_TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_pro
 
 
 class ModelLoader:
-    """Loads base models and configures PEFT/LoRA modules on target hardware."""
-
     def __init__(self, config, dtype: torch.dtype = torch.float16):
         self.config = config
         self.base_model = None
@@ -30,7 +24,6 @@ class ModelLoader:
 
     @staticmethod
     def _resolve_device_and_dtype(requested_dtype: torch.dtype):
-        """Picks the best available device and a dtype that's safe for it."""
         if torch.cuda.is_available():
             dtype = (
                 torch.bfloat16
@@ -65,10 +58,6 @@ class ModelLoader:
         return self.base_model
 
     def setup_lora_training(self, model=None, r=8, alpha=32, dropout=0.05, target_modules=None):
-        """Configures and wraps a base model with LoRA layers using HuggingFace PEFT.
-
-        Supports Qwen, LLaMA, CodeGen, and generic CausalLM architectures.
-        """
         target_model = model if model is not None else self.base_model
         if target_model is None:
             raise ValueError("Base model must be loaded before setting up LoRA.")
@@ -89,7 +78,6 @@ class ModelLoader:
         return self.lora_model
 
     def _resolve_lora_target_modules(self):
-        """Falls back to the config's target modules, then a hardcoded default."""
         if hasattr(self.config, "lora") and hasattr(self.config.lora, "target_modules"):
             return self.config.lora.target_modules
         return DEFAULT_LORA_TARGET_MODULES
@@ -105,16 +93,6 @@ class ModelLoader:
         learning_rate: float = 1e-4,  # lowered from 3e-4 - less risk of destabilizing a tiny model
         max_length: int = 256,
     ):
-        """Fine-tunes the LoRA adapter, masking the loss to the completion only
-        (prompt tokens get label = -100).
-
-        Training on the full sequence (prompt + completion) rewards the model
-        for memorizing prompts, which with only ~200 examples and a handful of
-        epochs can noticeably degrade instruction-following on unrelated
-        formats (e.g. the JSON-output contract used by TextToSQLGenerator) -
-        which is what happened before: every SQL generation collapsed to the
-        parser's failure fallback.
-        """
         if not train_examples:
             logger.warning("No training examples provided; skipping LoRA training.")
             return lora_model
@@ -148,7 +126,6 @@ class ModelLoader:
 
     @staticmethod
     def _prepare_model_for_training(lora_model, is_mps: bool) -> None:
-        """Enables gradient checkpointing and puts the model into train mode."""
         import os
 
         if is_mps:
@@ -162,8 +139,6 @@ class ModelLoader:
 
     @staticmethod
     def _build_training_example(tokenizer, prompt: str, completion: str, max_length: int) -> dict:
-        """Tokenizes one (prompt, completion) pair and masks the prompt tokens
-        in `labels` so loss is only computed on the completion."""
         full_text = prompt + completion + tokenizer.eos_token
         full_ids = tokenizer(full_text, truncation=True, max_length=max_length)["input_ids"]
         prompt_ids = tokenizer(prompt, truncation=True, max_length=max_length)["input_ids"]
@@ -177,7 +152,6 @@ class ModelLoader:
 
     @staticmethod
     def _collate_batch(batch, pad_id: int) -> dict:
-        """Pads a batch of variable-length examples to the same length."""
         max_len = max(len(ex["input_ids"]) for ex in batch)
         input_ids, attn_mask, labels = [], [], []
 
@@ -195,7 +169,6 @@ class ModelLoader:
 
     @staticmethod
     def _run_training_epoch(lora_model, loader, optimizer, device, grad_accum_steps: int, is_mps: bool) -> float:
-        """Runs one epoch of gradient-accumulated training and returns the average loss."""
         total_loss, n_steps = 0.0, 0
         optimizer.zero_grad()
 
@@ -269,21 +242,6 @@ class ModelLoader:
         max_new_tokens: int = 256,
         temperature: float = 0.2,
     ) -> Tuple[str, str]:
-        """Generates a genuine base-model output and a genuine LoRA-adapted
-        output from the exact same trained model, using PEFT's
-        `disable_adapter()` context manager.
-
-        This is the correct way to compare "base" vs "LoRA" behavior once a
-        model has been wrapped with `get_peft_model()`: because that call
-        mutates the base model's submodules in place, any separately-stored
-        "base_model" reference actually still carries the (active) LoRA
-        weights. Toggling the adapter off/on for the SAME object is the only
-        way to get a fair comparison without loading two separate model
-        instances into memory.
-
-        Returns:
-            (base_output, lora_output) - both decoded, stripped strings.
-        """
         device = next(lora_model.parameters()).device
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         gen_kwargs = dict(

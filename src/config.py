@@ -1,10 +1,3 @@
-"""Central configuration for the CodeGen pipeline.
-
-All settings are grouped into small dataclasses (paths, model names, LoRA,
-embedding, RAG, generation, evaluation) and can optionally be overridden by
-a YAML file via `PipelineConfig`.
-"""
-
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -88,12 +81,6 @@ class EvaluationConfig:
 
 
 class PipelineConfig:
-    """Master pipeline configuration, optionally loaded from a YAML file.
-
-    Any section missing from the YAML file falls back to the dataclass
-    defaults above, so a partial config file is always safe to use.
-    """
-
     def __init__(self, yaml_path: Optional[str] = None):
         if yaml_path is None:
             # Resolve relative to the project root (three levels up from this file).
@@ -124,5 +111,4 @@ class PipelineConfig:
 
 
 def load_config(yaml_path: Optional[str] = None) -> PipelineConfig:
-    """Convenience wrapper that returns a ready-to-use PipelineConfig instance."""
     return PipelineConfig(yaml_path=yaml_path)

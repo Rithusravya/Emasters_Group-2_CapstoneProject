@@ -1,21 +1,3 @@
-<<<<<<< Updated upstream
-"""Semantic, structural, and execution metrics for generated code and SQL.
-=======
-from __future__ import annotations
-import math
-from typing import Any, Dict, List
-from codebleu import calc_codebleu
-from nltk.translate.bleu_score import (
-                SmoothingFunction,
-                corpus_bleu,
-            )
->>>>>>> Stashed changes
-
-Implements small, dependency-light versions of BLEU, CodeBERTScore, token F1,
-ROUGE, and execution/response accuracy so the pipeline doesn't need heavy
-external scoring libraries.
-"""
-
 import ast
 import logging
 import os
@@ -29,15 +11,10 @@ from typing import Any, Dict, List, Union
 
 logger = logging.getLogger(__name__)
 
-# CodeBERT is forced onto CPU by default so the notebook runs anywhere without
-# a GPU. Flip this to "cuda" (or pass device="cuda" to compute_bertscore)
-# once you move to a machine with a GPU available.
 EVAL_DEVICE = "cpu"
 
 
 class EvaluationMetrics:
-    """Provides semantic, structural, and execution metrics for generated code."""
-
     # Cached CodeBERT tokenizer/model so repeated calls don't reload weights.
     _codebert_tokenizer = None
     _codebert_model = None
@@ -45,9 +22,7 @@ class EvaluationMetrics:
 
 
     @staticmethod
-<<<<<<< Updated upstream
     def extract_code_str(item: Union[str, Dict[str, Any], Any]) -> str:
-        """Extracts a code/text string safely from a dict, string, or dataset item."""
         if isinstance(item, str):
             return item
         if isinstance(item, dict):
@@ -67,7 +42,6 @@ class EvaluationMetrics:
 
     @classmethod
     def _sentence_bleu(cls, ref_tokens: List[str], cand_tokens: List[str], max_n: int = 4) -> float:
-        """Computes smoothed sentence-level BLEU with a brevity penalty."""
         if not cand_tokens or not ref_tokens:
             return 0.0
 
@@ -90,7 +64,6 @@ class EvaluationMetrics:
 
     @classmethod
     def compute_bleu(cls, references: List[Union[str, Dict[str, Any]]], predictions: List[str]) -> float:
-        """Averages sentence-level BLEU across all reference/prediction pairs."""
         if not references or not predictions:
             return 0.0
 
@@ -127,9 +100,6 @@ class EvaluationMetrics:
 
     @staticmethod
     def _load_codebert_weights(model_name: str):
-        """Loads CodeBERT weights, preferring safetensors and explaining the
-        torch>=2.6 requirement if the legacy `.bin` checkpoint path is blocked.
-        """
         try:
             from transformers import AutoModel
             return AutoModel.from_pretrained(model_name, use_safetensors=True)
@@ -155,7 +125,6 @@ class EvaluationMetrics:
 
     @classmethod
     def _embed_codebert(cls, texts: List[str], tokenizer, model, device: str, max_length: int = 512):
-        """Mean-pools CodeBERT hidden states into a single normalized embedding per text."""
         import torch
 
         with torch.no_grad():
@@ -175,7 +144,6 @@ class EvaluationMetrics:
         model_type: str = "microsoft/codebert-base",
         device: str = EVAL_DEVICE,
     ) -> float:
-        """Computes mean cosine similarity between CodeBERT embeddings of refs vs. predictions."""
         if not references or not predictions:
             return 0.0
 
@@ -197,8 +165,6 @@ class EvaluationMetrics:
     # -------------------------------------------------------------------------
     @staticmethod
     def _strip_markdown_code_fence(code_str: str) -> str:
-        """Extracts code from a ```python ... ``` fence if present, else strips
-        any stray fence markers."""
         match = re.search(r"```(?:python|py)?\s*\n?(.*?)\n?\s*```", code_str, re.DOTALL)
         if match:
             return match.group(1).strip()
@@ -207,7 +173,6 @@ class EvaluationMetrics:
 
     @classmethod
     def _run_program_and_check_success(cls, program: str, timeout: int) -> bool:
-        """Writes `program` to a temp file and runs it, returning True on a clean exit."""
         with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
             f.write(program)
             temp_file = f.name
@@ -251,7 +216,6 @@ class EvaluationMetrics:
     # -------------------------------------------------------------------------
     @classmethod
     def compute_f1(cls, references: List[Union[str, Dict[str, Any]]], predictions: List[str]) -> float:
-        """Averages token-set F1 (precision/recall over whitespace-split tokens)."""
         if not references or not predictions:
             return 0.0
 
@@ -279,7 +243,6 @@ class EvaluationMetrics:
     # -------------------------------------------------------------------------
     @staticmethod
     def _lcs_length(x, y) -> int:
-        """Longest common subsequence length via classic O(m*n) dynamic programming."""
         m, n = len(x), len(y)
         dp = [[0] * (n + 1) for _ in range(m + 1)]
         for i in range(1, m + 1):
@@ -292,14 +255,12 @@ class EvaluationMetrics:
 
     @staticmethod
     def _f1_from_overlap(overlap: int, pred_len: int, ref_len: int) -> float:
-        """Shared precision/recall/F1 computation used by both ROUGE-1 and ROUGE-L."""
         precision = overlap / pred_len if pred_len else 0.0
         recall = overlap / ref_len if ref_len else 0.0
         return 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
     @classmethod
     def compute_rouge(cls, references: List[Union[str, Dict[str, Any]]], predictions: List[str]) -> Dict[str, float]:
-        """Computes averaged ROUGE-1 (unigram overlap) and ROUGE-L (longest common subsequence)."""
         if not references or not predictions:
             return {"ROUGE-1": 0.0, "ROUGE-L": 0.0}
 
@@ -320,11 +281,10 @@ class EvaluationMetrics:
         }
 
     # -------------------------------------------------------------------------
-    # 6. SQL Response/Execution Accuracy (Result-based)
+    # 6. SQL Response/Execution Accuracy
     # -------------------------------------------------------------------------
     @staticmethod
     def _result_sets_match(gold_results: list, pred_results: list) -> bool:
-        """Compares two SQL result sets order-independently where possible."""
         try:
             return sorted(gold_results) == sorted(pred_results)
         except TypeError:
@@ -335,9 +295,6 @@ class EvaluationMetrics:
     def compute_sql_execution_accuracy(
         cls, gold_sqls: List[str], pred_sqls: List[str], db_paths: List[str]
     ) -> float:
-        """Executes gold and predicted SQL queries against SQLite databases and compares
-        the result sets. This is the standard 'Execution Accuracy' for Text-to-SQL tasks.
-        """
         if not gold_sqls or not pred_sqls or not db_paths:
             return 0.0
 
@@ -359,7 +316,7 @@ class EvaluationMetrics:
                 continue
 
         return passed / len(gold_sqls)
-=======
+
     def calculate_codebleu(
         predictions: List[str],
         references: List[str],
@@ -392,11 +349,6 @@ class EvaluationMetrics:
             references: List[str],
             lang: str = "python",
     ) -> float:
-        """
-        Calculate CodeBERT similarity using microsoft/codebert-base.
-        Runs on CPU.
-        """
-
         try:
             import torch
             from transformers import AutoTokenizer, AutoModel
@@ -583,4 +535,3 @@ class EvaluationMetrics:
                     references,
                 ),
         }
->>>>>>> Stashed changes

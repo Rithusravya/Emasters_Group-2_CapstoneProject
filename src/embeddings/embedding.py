@@ -1,7 +1,3 @@
-"""Generates vector embeddings for code/queries using a HuggingFace encoder
-model (e.g. BAAI/bge-small-en-v1.5), with automatic device selection.
-"""
-
 import logging
 from typing import Any, List, Union
 
@@ -17,8 +13,6 @@ TEXT_FIELD_CANDIDATES = ["code", "SQL", "sql", "query", "question", "text", "ins
 
 
 class CodeEmbedder:
-    """Generates normalized embeddings for code and natural-language queries."""
-
     def __init__(
         self,
         model_name: Union[str, Any] = "BAAI/bge-small-en-v1.5",
@@ -48,7 +42,6 @@ class CodeEmbedder:
         return torch.float16 if device in ("cuda", "mps") else torch.float32
 
     def _load_model(self, model_name: Union[str, Any], tokenizer: AutoTokenizer):
-        """Loads the model (and tokenizer, if not already provided) onto `self.device`."""
         if isinstance(model_name, str):
             logger.info(f"Loading embedder model '{model_name}' on {self.device}...")
             resolved_tokenizer = tokenizer or AutoTokenizer.from_pretrained(model_name)
@@ -68,14 +61,12 @@ class CodeEmbedder:
         return model, resolved_tokenizer, resolved_name
 
     def _extract_text_field(self, item: dict) -> str:
-        """Pulls the first matching text/code field out of a dataset item dict."""
         for key in TEXT_FIELD_CANDIDATES:
             if key in item and isinstance(item[key], str):
                 return item[key]
         return str(item)
 
     def _mean_pooling(self, model_output, attention_mask: torch.Tensor) -> torch.Tensor:
-        """Mean-pools token embeddings, weighting out padded positions via the attention mask."""
         token_embeddings = model_output[0]
         input_mask_expanded = (
             attention_mask.unsqueeze(-1).expand(token_embeddings.size()).to(self.dtype)
@@ -85,14 +76,12 @@ class CodeEmbedder:
         )
 
     def _texts_from_dataframe(self, data: pd.DataFrame) -> List[str]:
-        """Extracts a text column from a DataFrame, preferring known field names."""
         col_match = next((c for c in TEXT_FIELD_CANDIDATES[:6] if c in data.columns), None)
         if col_match:
             return data[col_match].astype(str).tolist()
         return data.iloc[:, 0].astype(str).tolist()
 
     def _texts_from_input(self, data: Union[str, List[str], pd.DataFrame, List[dict]]) -> List[str]:
-        """Normalizes any supported input type into a flat list of strings."""
         if isinstance(data, pd.DataFrame):
             return self._texts_from_dataframe(data)
         if isinstance(data, list):
@@ -112,10 +101,6 @@ class CodeEmbedder:
         normalize: bool = True,
         batch_size: int = 32,
     ) -> np.ndarray:
-        """Encodes `data` into normalized float32 embeddings, batched for efficiency.
-
-        Returns an empty (0, hidden_size) array if `data` contains no items.
-        """
         texts = self._texts_from_input(data)
         if not texts:
             return np.empty((0, self.model.config.hidden_size), dtype=np.float32)
@@ -127,7 +112,6 @@ class CodeEmbedder:
         return np.vstack(batches)
 
     def _embed_batch(self, batch_texts: List[str], normalize: bool) -> np.ndarray:
-        """Runs the model on a single batch of texts and returns pooled embeddings."""
         inputs = self.tokenizer(
             batch_texts,
             padding=True,

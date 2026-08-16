@@ -1,8 +1,3 @@
-"""Builds the small processed-data JSONL files used for training/evaluation:
-Mongo-augmented Spider records, a retrieval corpus, and a few hand-written
-samples for the program/doc/commit generation tasks.
-"""
-
 import json
 from pathlib import Path
 
@@ -14,7 +9,6 @@ _DEFAULT_MONGO_QUERY = {"collection": "unknown", "operation": "find", "filter": 
 
 
 def read_jsonl(path: Path) -> list:
-    """Reads a JSONL file into a list of dicts. Returns [] if the file is missing."""
     if not path.exists():
         return []
 
@@ -28,7 +22,6 @@ def read_jsonl(path: Path) -> list:
 
 
 def write_jsonl(path: Path, records: list) -> None:
-    """Writes a list of dicts to a JSONL file, creating parent directories as needed."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         for record in records:
@@ -37,7 +30,6 @@ def write_jsonl(path: Path, records: list) -> None:
 
 
 def _load_spider_eval_or_warn() -> list:
-    """Loads spider_eval.jsonl, warning (rather than failing) if it's missing/empty."""
     spider_eval_path = PROCESSED_DIR / "spider_eval.jsonl"
     spider_eval = read_jsonl(spider_eval_path)
     if not spider_eval:
@@ -46,7 +38,6 @@ def _load_spider_eval_or_warn() -> list:
 
 
 def create_spider_mongo_from_spider_eval() -> None:
-    """Augments each Spider eval record with a (placeholder) MongoDB query field."""
     output_path = PROCESSED_DIR / "spider_mongo_converted.jsonl"
     spider_eval = _load_spider_eval_or_warn()
     if not spider_eval:
@@ -70,7 +61,6 @@ def create_spider_mongo_from_spider_eval() -> None:
 
 
 def create_retrieval_corpus_from_spider_eval() -> None:
-    """Builds a (question, gold SQL) retrieval corpus from Spider eval records."""
     output_path = PROCESSED_DIR / "retrieval_corpus.jsonl"
     spider_eval = _load_spider_eval_or_warn()
     if not spider_eval:
@@ -94,7 +84,6 @@ def create_retrieval_corpus_from_spider_eval() -> None:
 
 
 def create_program_generation_sample() -> None:
-    """Writes a few hand-crafted program-generation examples for smoke-testing."""
     records = [
         {
             "id": "program_sample_001",
@@ -122,7 +111,6 @@ def create_program_generation_sample() -> None:
 
 
 def create_doc_generation_sample() -> None:
-    """Writes a few hand-crafted doc-generation examples for smoke-testing."""
     records = [
         {
             "id": "doc_sample_001",
@@ -147,7 +135,6 @@ def create_doc_generation_sample() -> None:
 
 
 def create_commit_generation_sample() -> None:
-    """Writes a few hand-crafted commit-message examples for smoke-testing."""
     records = [
         {
             "id": "commit_sample_001",

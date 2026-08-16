@@ -1,13 +1,7 @@
-"""Converts Spider's dev.json + tables.json + pred_example.txt into a single
-normalized JSONL file (one record per question) used by evaluation/training.
-"""
-
 import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Resolve project root the same way prepare_processed_data.py does, so this
-# script works out of the box regardless of which machine/user runs it.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SPIDER_DIR = PROJECT_ROOT / "data" / "raw" / "Spider" / "spider_data"
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
@@ -25,8 +19,6 @@ def load_text_lines(path: Path) -> List[str]:
 
 def build_schema_from_tables(tables_entry: Dict[str, Any]) -> str:
     """Converts one Spider tables.json entry into a simple schema string.
-
-    This is simplified, but enough for prompt-based Text-to-SQL.
     """
     table_names = tables_entry.get("table_names_original", [])
     column_names = tables_entry.get("column_names_original", [])

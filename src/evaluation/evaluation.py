@@ -1,10 +1,3 @@
-"""Single-example evaluation engine for code generation and RAG.
-
-A thin convenience wrapper around `EvaluationMetrics`: it exposes the same
-BLEU / CodeBERTScore / execution-accuracy metrics, but for one
-prediction/reference pair at a time instead of a batch.
-"""
-
 import logging
 import sqlite3
 import subprocess
@@ -20,8 +13,6 @@ if not logger.handlers:
 
 
 class EvaluationEngine:
-    """Evaluates a single generated example against its reference."""
-
     def __init__(self, device: str = EVAL_DEVICE):
         self.device = device
 
@@ -32,7 +23,6 @@ class EvaluationEngine:
         return EvaluationMetrics.compute_bertscore([reference], [prediction], device=self.device)
 
     def execution_accuracy(self, generated_code: str, test_code: str = None) -> float:
-        """Runs `generated_code` as a standalone script and checks it exits cleanly."""
         try:
             with tempfile.TemporaryDirectory() as tmp:
                 file = Path(tmp) / "solution.py"
@@ -44,7 +34,6 @@ class EvaluationEngine:
             return 0.0
 
     def evaluate_code(self, generated_code: str, reference_code: str) -> Dict[str, float]:
-        """Computes BLEU, CodeBERTScore, and execution accuracy for generated code."""
         return {
             "BLEU": self.calculate_bleu(generated_code, reference_code),
             "CodeBERTScore": self.calculate_bert_score(generated_code, reference_code),
@@ -52,7 +41,6 @@ class EvaluationEngine:
         }
 
     def evaluate_sql(self, generated_sql: str, reference_sql: str) -> Dict[str, float]:
-        """Computes exact-match, BLEU, and CodeBERTScore for a generated SQL query."""
         generated = generated_sql.strip().lower()
         reference = reference_sql.strip().lower()
         return {
@@ -64,9 +52,6 @@ class EvaluationEngine:
     def evaluate_sql_response_accuracy(
         self, generated_sql: str, reference_sql: str, db_path: str
     ) -> Dict[str, Union[float, int, str]]:
-        """Executes both generated and reference SQL against the SQLite database and
-        compares the actual returned result sets. This is the true 'Response Accuracy'.
-        """
         try:
             conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
             cursor = conn.cursor()
@@ -79,7 +64,6 @@ class EvaluationEngine:
             try:
                 is_match = sorted(ref_results) == sorted(gen_results)
             except TypeError:
-                # Result rows aren't sortable (e.g. mixed types) - fall back to direct comparison.
                 is_match = ref_results == gen_results
 
             return {

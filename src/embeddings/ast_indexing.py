@@ -1,7 +1,3 @@
-"""Lightweight structural indexer used to pull function/class names out of
-Python source, for use as extra retrieval metadata.
-"""
-
 import ast
 import logging
 from typing import Any, Dict
@@ -10,17 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class ASTIndexer:
-    """Simple AST-based extractor of top-level code structure (functions, classes)."""
-
     def __init__(self, language: str = "python"):
         self.language = language
 
     def parse_structure(self, code: str) -> Dict[str, Any]:
-        """Parses `code` and returns the function/class names found in it.
-
-        Falls back to empty lists with status="failed" if the code doesn't
-        parse (e.g. incomplete snippets), rather than raising.
-        """
         try:
             tree = ast.parse(code)
             functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]

@@ -1,7 +1,3 @@
-"""Compares BLEU / CodeBERTScore / F1 / ROUGE (and optionally execution
-accuracy) across the Base, LoRA, and RAG pipelines.
-"""
-
 import logging
 from typing import Any, Dict, List, Union
 
@@ -11,8 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 class ModelComparator:
-    """Compares metrics across Base, LoRA, and RAG pipelines."""
-
     def __init__(self, device: str = EVAL_DEVICE):
         self.device = device
 
@@ -24,7 +18,7 @@ class ModelComparator:
         rag_preds: List[str],
         test_cases: List[str] = None,
     ) -> Dict[str, Dict[str, float]]:
-        """Computes the full metric suite for each pipeline's predictions."""
+
         pipelines = {
             "Base_Model": base_preds,
             "LoRA_Model": lora_preds,
@@ -45,7 +39,6 @@ class ModelComparator:
         preds: List[str],
         test_cases: List[str] = None,
     ) -> Dict[str, float]:
-        """Computes the standard metric set for one set of predictions."""
         rouge_scores = EvaluationMetrics.compute_rouge(references, preds)
 
         metrics = {

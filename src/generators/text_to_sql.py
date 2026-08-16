@@ -1,8 +1,3 @@
-"""Task module for Natural Language -> SQL + MongoDB translation, producing
-structured JSON output even when the underlying small model's raw output is
-messy (extra prose, markdown fences, malformed JSON, etc.).
-"""
-
 import json
 import re
 from datetime import datetime
@@ -11,9 +6,6 @@ from typing import Any, Dict, Optional, Union
 
 from src.generators.program_generator import GenerationPipeline
 
-# Phrases that indicate the model produced an explanation instead of a SQL
-# query - if any of these show up in "sql_query", we treat it as unusable
-# and fall back to extracting a raw SELECT statement instead.
 _EXPLANATION_PHRASES = [
     "to convert", "understand the", "here's", "explain", "step",
     "\"status\"", "we need to", "follow these steps", "natural language",
@@ -53,14 +45,10 @@ _FALLBACK_SQL = "SELECT * FROM table; -- Model failed to generate valid SQL."
 
 
 class TextToSQLGenerator:
-    """Task module for Natural Language to SQL & MongoDB translation
-    producing structured JSON output."""
-
     def __init__(self, pipeline: GenerationPipeline):
         self.pipeline = pipeline
 
     def _build_prompt(self, question: str, schema: Optional[str], dialect: str) -> str:
-        """Builds the instruction prompt for SQL + MongoDB generation."""
         return _PROMPT_TEMPLATE.format(dialect=dialect, schema=schema or "N/A", question=question)
 
     def generate_queries(
@@ -69,11 +57,6 @@ class TextToSQLGenerator:
         schema: Optional[str] = None,
         dialect: str = "sqlite",
     ) -> Dict[str, Any]:
-        """Generates SQL + MongoDB queries for a natural language question.
-
-        Returns:
-            dict with keys: "sql_query" (str) and "mongodb_query" (dict)
-        """
         prompt = self._build_prompt(question, schema, dialect)
         raw_output = self._call_pipeline(prompt)
         raw_text = self._normalize_pipeline_output(raw_output)
@@ -81,8 +64,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _normalize_pipeline_output(raw_output: Any) -> str:
-        """Normalizes whatever the generation pipeline returns (str, list, or
-        dict) into a plain string."""
         if isinstance(raw_output, list):
             raw_output = raw_output[0] if raw_output else ""
         if isinstance(raw_output, dict):
@@ -98,7 +79,6 @@ class TextToSQLGenerator:
         dialect: Optional[str] = None,
         filename: Optional[str] = None,
     ) -> Path:
-        """Writes a generation result (plus its inputs) to a JSON file and returns its path."""
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -119,7 +99,6 @@ class TextToSQLGenerator:
         return output_path
 
     def _parse_json_response(self, text: str) -> Dict[str, Any]:
-        """Parses the LLM output into a dictionary, with robust fallbacks for small models."""
         parsed = self._extract_json_object(text)
 
         sql_query = parsed.get("sql_query", "").strip() if isinstance(parsed, dict) else ""
@@ -135,8 +114,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _extract_json_object(text: str) -> Dict[str, Any]:
-        """Strips markdown fences and parses JSON, falling back to scanning for
-        a `{...}` block if the direct parse fails."""
         cleaned_text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
         cleaned_text = re.sub(r"\s*```$", "", cleaned_text, flags=re.MULTILINE)
 
@@ -156,7 +133,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _looks_like_explanation(sql_query: str) -> bool:
-        """True if `sql_query` reads like prose/explanation rather than actual SQL."""
         if not sql_query:
             return True
         lowered = sql_query.lower()
@@ -164,8 +140,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _extract_sql_fallback(text: str) -> str:
-        """Last-resort SQL extraction: look for a bare SELECT statement, then a
-        ```sql fenced block, then give up with a clearly-marked placeholder."""
         sql_match = re.search(r"(SELECT\s+.*?)(?:\n\n|```|$)", text, re.IGNORECASE | re.DOTALL)
         if sql_match:
             return sql_match.group(1).strip()
@@ -178,8 +152,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _normalize_mongodb_query(mongodb_query: Any) -> Dict[str, Any]:
-        """Ensures `mongodb_query` is always a well-formed dict with collection/
-        operation/filter keys, regardless of what the model actually returned."""
         if isinstance(mongodb_query, str):
             collection_match = re.search(r"db\.([a-zA-Z_]+)\.", mongodb_query)
             collection = collection_match.group(1) if collection_match else "collection"
@@ -201,7 +173,6 @@ class TextToSQLGenerator:
         return dict(_DEFAULT_MONGO_QUERY)
 
     def _call_pipeline(self, prompt: str) -> str:
-        """Calls GenerationPipeline using whichever method it actually exposes."""
         pipeline = self.pipeline
 
         # 1) Try common generation method names.
@@ -219,8 +190,6 @@ class TextToSQLGenerator:
 
     @staticmethod
     def _generate_from_model_and_tokenizer(pipeline: Any, prompt: str) -> str:
-        """Generates text directly via `pipeline.model`/`pipeline.tokenizer` when
-        the pipeline object exposes neither a generation method nor __call__."""
         model = getattr(pipeline, "model", None)
         tokenizer = getattr(pipeline, "tokenizer", None)
 

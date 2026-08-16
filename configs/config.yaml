@@ -70,8 +70,6 @@ lora:
 
 data:
   raw_dir: "data/raw"
-  # dataset key -> subfolder name under raw_dir. Each subfolder may contain
-  # multiple .jsonl/.json files; the loader merges all of them.
   datasets:
     spider: "Spider"
     birdbench: "BirdBench"
