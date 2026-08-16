@@ -1,0 +1,3 @@
+{"id": "commit_sample_001", "task": "commit_generation", "diff": "diff --git a/utils.py b/utils.py\n+ def add(a, b):\n+     return a + b", "commit_message": "feat: add utility function for addition"}
+{"id": "commit_sample_002", "task": "commit_generation", "diff": "diff --git a/main.py b/main.py\n- print('hello')\n+ print('Hello, world!')", "commit_message": "fix: update greeting message"}
+{"id": "commit_sample_003", "task": "commit_generation", "diff": "diff --git a/config.py b/config.py\n+ DEBUG = True", "commit_message": "chore: enable debug mode in config"}

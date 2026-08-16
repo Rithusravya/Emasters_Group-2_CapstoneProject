@@ -1,0 +1,17 @@
+[
+  {
+    "input": "diff --git a/utils.py b/utils.py\n+ def add(a, b):\n+     return a + b",
+    "reference": "feat: add utility function for addition",
+    "prediction": "Add `add` function to `utils.py`\n```\n\nThis commit message succinctly summarizes the purpose of the change and provides a clear description of what was added. It also includes the author's name and email address, which is crucial for maintaining attribution in commits. The commit message is concise yet informative, making it easy for others to understand the changes made."
+  },
+  {
+    "input": "diff --git a/main.py b/main.py\n- print('hello')\n+ print('Hello, world!')",
+    "reference": "fix: update greeting message",
+    "prediction": "Update main.py to print 'Hello, world!' instead of 'hello'\n```\n\nThis commit message clearly states the purpose of the change (update `main.py` to print \"Hello, world!\") and provides a concise description of what was changed. It also includes the author's name and email address in the commit message format."
+  },
+  {
+    "input": "diff --git a/config.py b/config.py\n+ DEBUG = True",
+    "reference": "chore: enable debug mode in config",
+    "prediction": "Update DEBUG setting to True in config.py\n```\n\nThis commit message clearly states the purpose of the change (update DEBUG setting), provides a brief description of what was changed, and includes the author's name. The commit message is concise yet informative, making it easy for others to understand the changes."
+  }
+]

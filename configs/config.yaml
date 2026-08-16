@@ -1,0 +1,93 @@
+# General & System Configurations
+project_name: "Emasters_Group-2_CapstoneProject"
+seed: 42
+device: "auto"
+dtype: "float16"  # Options: 'float16', 'bfloat16'
+
+<<<<<<< Updated upstream
+# Model & Tokenizer Configs
+model_name: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+lora_adapter_path: "models/checkpoints/lora_finetuned"
+
+# Embedding Model Configs
+embedding_model: "BAAI/bge-small-en-v1.5"
+
+# Dataset Paths
+data_paths:
+  raw_dir: "data/raw"
+  spider: "*.jsonl"
+#  birdbench: "birdbench.jsonl"
+#  codocbench: "codocbench.jsonl"
+
+# FAISS Vector & AST Index Paths
+indices_paths:
+  faiss_index: "data/indices/faiss_semantic.index"
+  ast_store: "data/indices/ast_store.pkl"
+
+# Text Generation Parameters
+generation:
+=======
+model:
+  name_or_path: "Qwen/Qwen2.5-Coder-0.5B-Instruct"   # base small code LM (matches README)
+  embedding_name: "BAAI/bge-small-en-v1.5"  # used for FAISS embeddings
+>>>>>>> Stashed changes
+  max_length: 512
+  temperature: 0.2
+  top_k: 50
+  top_p: 0.95
+  num_return_sequences: 1
+
+# Evaluation Settings
+evaluation:
+  bertscore_model: "microsoft/codebert-base"
+  timeout_seconds: 3
+  # CodeBERTScore device, kept separate from the main `device` setting above.
+  # Set to "cpu" for now; flip to "cuda" once GPU evaluation is needed.
+  device: "cpu"
+
+# ============================================================
+# LoRA Training Settings
+# ============================================================
+lora:
+  r: 16
+<<<<<<< Updated upstream
+  alpha: 32
+  dropout: 0.05
+  # Qwen attention + MLP modules
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  batch_size: 4
+  learning_rate: 0.0003
+  epochs: 5
+  output_dir: "models/checkpoints/lora_finetuned"
+=======
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
+data:
+  raw_dir: "data/raw"
+  # dataset key -> subfolder name under raw_dir. Each subfolder may contain
+  # multiple .jsonl/.json files; the loader merges all of them.
+  datasets:
+    spider: "Spider"
+    birdbench: "BirdBench"
+    codocbench: "CoDocBench"
+  sample_limit: 200   # cap per-dataset rows loaded (keeps notebooks fast)
+
+rag:
+  codeparrot_subset_size: 500
+
+indexing:
+  top_k: 3
+  vector_dim: 1024   # must match model.embedding_name's output dimension
+>>>>>>> Stashed changes
+
+# Outputs & Evaluation Paths
+outputs:
+  logs_dir: "output/logs"
+  metrics_path: "output/metrics/evaluation_metrics.json"
+  plots_dir: "output/plots"
