@@ -15,8 +15,6 @@ embedding_model: "BAAI/bge-small-en-v1.5"
 data_paths:
   raw_dir: "data/raw"
   spider: "*.jsonl"
-#  birdbench: "birdbench.jsonl"
-#  codocbench: "codocbench.jsonl"
 
 # FAISS Vector & AST Index Paths
 indices_paths:
@@ -67,8 +65,6 @@ data:
   raw_dir: "data/raw"
   datasets:
     spider: "Spider"
-    birdbench: "BirdBench"
-    codocbench: "CoDocBench"
   sample_limit: 200   # cap per-dataset rows loaded (keeps notebooks fast)
 
 rag:
