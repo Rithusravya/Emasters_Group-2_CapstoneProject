@@ -4,7 +4,6 @@ seed: 42
 device: "auto"
 dtype: "float16"  # Options: 'float16', 'bfloat16'
 
-<<<<<<< Updated upstream
 # Model & Tokenizer Configs
 model_name: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 lora_adapter_path: "models/checkpoints/lora_finetuned"
@@ -26,11 +25,9 @@ indices_paths:
 
 # Text Generation Parameters
 generation:
-=======
 model:
   name_or_path: "Qwen/Qwen2.5-Coder-0.5B-Instruct"   # base small code LM (matches README)
   embedding_name: "BAAI/bge-small-en-v1.5"  # used for FAISS embeddings
->>>>>>> Stashed changes
   max_length: 512
   temperature: 0.2
   top_k: 50
@@ -50,7 +47,6 @@ evaluation:
 # ============================================================
 lora:
   r: 16
-<<<<<<< Updated upstream
   alpha: 32
   dropout: 0.05
   # Qwen attention + MLP modules
@@ -59,7 +55,6 @@ lora:
   learning_rate: 0.0003
   epochs: 5
   output_dir: "models/checkpoints/lora_finetuned"
-=======
   lora_alpha: 32
   lora_dropout: 0.05
   target_modules:
@@ -82,7 +77,6 @@ rag:
 indexing:
   top_k: 3
   vector_dim: 1024   # must match model.embedding_name's output dimension
->>>>>>> Stashed changes
 
 # Outputs & Evaluation Paths
 outputs:
