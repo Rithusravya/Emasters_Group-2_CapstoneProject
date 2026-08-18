@@ -1,0 +1,19 @@
+{
+  "Text_to_SQL": {
+    "BLEU": 0.2417,
+    "CodeBERTScore": 0.975,
+    "F1_Score": 0.4775,
+    "ROUGE-1": 0.4503,
+    "ROUGE-L": 0.4423,
+    "Exact_Match": 0.07,
+    "Execution_Accuracy": 0.1
+  },
+  "Documentation_Generation": {
+    "BLEU": 0.1463,
+    "CodeBERTScore": 0.9687,
+    "F1_Score": 0.3789,
+    "ROUGE-1": 0.3545,
+    "ROUGE-L": 0.3323,
+    "Execution_Accuracy": null
+  }
+}

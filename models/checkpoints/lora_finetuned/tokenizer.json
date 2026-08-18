@@ -1,15 +1,11 @@
 {
   "version": "1.0",
-<<<<<<< HEAD
   "truncation": {
     "direction": "Right",
     "max_length": 256,
     "strategy": "LongestFirst",
     "stride": 0
   },
-=======
-  "truncation": null,
->>>>>>> 34a39ba125807d6d5ad018bde3e10c5385854fa7
   "padding": null,
   "added_tokens": [
     {
