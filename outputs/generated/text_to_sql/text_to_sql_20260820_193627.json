@@ -1,0 +1,8 @@
+{
+  "question": "Find the total number of employees in the engineering department who joined after 2022.",
+  "schema": "Table employee(id, name, department, join_year)",
+  "dialect": "sqlite",
+  "sql_query": "SELECT COUNT(*) FROM employee WHERE department = 'Engineering' AND join_year > 2022;\n```\n\nExplanation:\nTo find the total number of employees in the engineering department who joined after 2022, we need to count all rows where the `department` column is 'Engineering' and the `join_year` column is greater than 2022. The `COUNT(*)` function will return the total number of rows that satisfy these conditions.",
+  "valid": true,
+  "parse_error": null
+}

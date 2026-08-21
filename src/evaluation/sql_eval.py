@@ -15,8 +15,23 @@ class SpiderSQLEvaluator:
     def normalize_sql(sql: str) -> str:
         if not sql:
             return ""
-        sql = re.sub(r"\s+", " ", sql.lower().strip())
-        return sql.rstrip(";").strip()
+        # Lowercase
+        sql = sql.lower().strip()
+        # Remove semicolons
+        sql = sql.rstrip(";").strip()
+        # Remove markdown artifacts
+        sql = sql.replace("```", "").replace("`", "")
+        # Normalize whitespace
+        sql = re.sub(r"\s+", " ", sql)
+        # Normalize parentheses: remove spaces inside parens for Spider compatibility
+        # Spider uses "count( )" but models generate "count(*)" or "count( * )"
+        sql = re.sub(r"\(\s*\*\s*\)", "( * )", sql)
+        sql = re.sub(r"\(\s+\)", "( )", sql)
+        # Remove spaces around operators for consistency
+        sql = re.sub(r"\s*([,;=<>!])\s*", r" \1 ", sql)
+        # Collapse multiple spaces again
+        sql = re.sub(r"\s+", " ", sql)
+        return sql.strip()
 
     def response_accuracy(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not records:

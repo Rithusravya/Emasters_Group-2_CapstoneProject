@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 from collections import Counter
 from math import exp, log
+import math
 from typing import Any, Dict, List, Union
 
 logger = logging.getLogger(__name__)
@@ -45,19 +46,23 @@ class EvaluationMetrics:
         if not cand_tokens or not ref_tokens:
             return 0.0
 
+        # Do not score n-gram orders that cannot exist in either sequence.
+        # The previous implementation appended 0.0 for short sequences and then
+        # called log(0), making one-token exact matches crash with ValueError.
+        effective_max_n = min(max_n, len(ref_tokens), len(cand_tokens))
+        if effective_max_n <= 0:
+            return 0.0
+
         precisions = []
-        for n in range(1, max_n + 1):
+        for n in range(1, effective_max_n + 1):
             cand_ngrams = cls._ngram_counts(cand_tokens, n)
-            if not cand_ngrams:
-                precisions.append(0.0)
-                continue
             ref_ngrams = cls._ngram_counts(ref_tokens, n)
             overlap = sum(min(count, ref_ngrams.get(ng, 0)) for ng, count in cand_ngrams.items())
             total = sum(cand_ngrams.values())
-            # +1 smoothing avoids zero precision (and thus zero BLEU) on short candidates.
+            # Add-one smoothing keeps non-identical short candidates measurable.
             precisions.append((overlap + 1) / (total + 1))
 
-        geo_mean = exp(sum(log(p) for p in precisions) / len(precisions))
+        geo_mean = exp(sum(log(max(p, 1e-12)) for p in precisions) / len(precisions))
         ref_len, cand_len = len(ref_tokens), len(cand_tokens)
         brevity_penalty = 1.0 if cand_len > ref_len else exp(1 - ref_len / cand_len)
         return brevity_penalty * geo_mean
@@ -343,116 +348,33 @@ class EvaluationMetrics:
 
             return 0.0
 
-    @staticmethod
-    def calculate_code_bertscore(
-            predictions: List[str],
-            references: List[str],
-            lang: str = "python",
+    @classmethod
+    def calculate_bertscore(
+        cls,
+        predictions: List[str],
+        references: List[str],
+        lang: str = "python",
     ) -> float:
-        try:
-            import torch
-            from transformers import AutoTokenizer, AutoModel
-            import torch.nn.functional as F
+        """Backward-compatible wrapper around the canonical CodeBERT scorer."""
+        return cls.compute_bertscore(references, predictions, device=EVAL_DEVICE)
 
-            device = torch.device("cpu")
-
-            model_name = "microsoft/codebert-base"
-
-            # Load once and cache
-            if not hasattr(CodeMetricsEvaluator, "_codebert_tokenizer"):
-                CodeMetricsEvaluator._codebert_tokenizer = (
-                    AutoTokenizer.from_pretrained(model_name)
-                )
-
-                CodeMetricsEvaluator._codebert_model = (
-                    AutoModel.from_pretrained(model_name)
-                    .to(device)
-                    .eval()
-                )
-
-            tokenizer = CodeMetricsEvaluator._codebert_tokenizer
-            model = CodeMetricsEvaluator._codebert_model
-
-            scores = []
-
-            with torch.no_grad():
-
-                for pred, ref in zip(predictions, references):
-                    pred_inputs = tokenizer(
-                        pred,
-                        return_tensors="pt",
-                        truncation=True,
-                        max_length=256,
-                        padding=True,
-                    ).to(device)
-
-                    ref_inputs = tokenizer(
-                        ref,
-                        return_tensors="pt",
-                        truncation=True,
-                        max_length=256,
-                        padding=True,
-                    ).to(device)
-
-                    pred_emb = model(**pred_inputs).last_hidden_state[:, 0, :]
-
-                    ref_emb = model(**ref_inputs).last_hidden_state[:, 0, :]
-
-                    similarity = F.cosine_similarity(
-                        pred_emb,
-                        ref_emb
-                    )
-
-                    scores.append(
-                        float(similarity.item())
-                    )
-
-            return sum(scores) / len(scores) if scores else 0.0
+    @classmethod
+    def calculate_code_bertscore(
+        cls,
+        predictions: List[str],
+        references: List[str],
+        lang: str = "python",
+    ) -> float:
+        return cls.calculate_bertscore(predictions, references, lang=lang)
 
 
-        except Exception as e:
-
-            print(
-                "CodeBERT error:",
-                e
-            )
-
-            return 0.0
-
-
-    @staticmethod
+    @classmethod
     def calculate_bleu(
+        cls,
         predictions: List[str],
         references: List[str],
     ) -> float:
-
-        try:
-            refs = [
-                [r.split()]
-                for r in references
-            ]
-
-            hyps = [
-                p.split()
-                for p in predictions
-            ]
-
-            return float(
-                corpus_bleu(
-                    refs,
-                    hyps,
-                    smoothing_function=
-                    SmoothingFunction().method1,
-                )
-            )
-
-        except Exception as e:
-
-            print(
-                "BLEU error:",
-                e
-            )
-            return 0.0
+        return cls.compute_bleu(references, predictions)
 
     @staticmethod
     def exact_match_accuracy(
@@ -504,19 +426,16 @@ class EvaluationMetrics:
     ) -> Dict[str, Any]:
 
         return {
-
-            "n":
-                len(predictions),
-
+            "n": len(predictions),
             "bleu":
-                CodeMetricsEvaluator.calculate_bleu(
+                EvaluationMetrics.calculate_bleu(
                     predictions,
                     references,
                 ),
 
             # Keep CodeBLEU for code tasks
             "codebleu":
-                CodeMetricsEvaluator.calculate_codebleu(
+                EvaluationMetrics.calculate_codebleu(
                     predictions,
                     references,
                     lang,
@@ -524,14 +443,18 @@ class EvaluationMetrics:
 
             # Normal BERTScore for docs
             "code_bertscore":
-                CodeMetricsEvaluator.calculate_bertscore(
+                EvaluationMetrics.calculate_bertscore(
                     predictions,
                     references,
                 ),
 
             "exact_match":
-                CodeMetricsEvaluator.exact_match_accuracy(
+                EvaluationMetrics.exact_match_accuracy(
                     predictions,
                     references,
                 ),
         }
+
+
+# Compatibility name used by earlier notebooks.
+CodeMetricsEvaluator = EvaluationMetrics

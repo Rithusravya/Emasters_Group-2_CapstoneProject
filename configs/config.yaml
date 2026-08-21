@@ -9,7 +9,27 @@ model_name: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 lora_adapter_path: "models/checkpoints/lora_finetuned"
 
 # Embedding Model Configs
-embedding_model: "BAAI/bge-small-en-v1.5"
+embedding_model: "BAAI/bge-small-en-v1.5"  # used only when embedding.source == "external"
+
+embedding:
+  source: "code_lm"
+  external_model: "BAAI/bge-small-en-v1.5"
+
+# Retrieval Settings (semantic + AST/structural hybrid search — Task 3.2/3.3)
+retrieval:
+  hybrid: true
+  structural_weight_alpha: 0.7
+  structural_language: "sql"
+  topk_sweep: [1, 2, 3, 5, 8]
+
+# Large-LLM baseline, for "small code LM vs. LLM" comparison (Task 3 overall)
+llm_baseline:
+  backend: "local"           # "local" or "api"
+  local_model: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+  api_model: "gpt-5.4-mini"
+  api_key_env: "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"
+  max_new_tokens: 256
+  temperature: 0.2
 
 # Dataset Paths
 data_paths:

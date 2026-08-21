@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,10 @@ class RAGPipeline:
 
     def retrieve_context(self, query: str, top_k: int = 5) -> List[str]:
         query_embedding = self.embedder.generate_embedding(query, is_query=True)
-        results = self.index_manager.search(query_embedding, k=top_k)
+        try:
+            results = self.index_manager.search(query_embedding, k=top_k, query_text=query)
+        except TypeError:
+            results = self.index_manager.search(query_embedding, k=top_k)
         return [self._metadata_to_text(metadata) for metadata, _score in results]
 
     @staticmethod
@@ -29,13 +32,25 @@ class RAGPipeline:
                 return metadata[field]
         return str(metadata)
 
-    def build_prompt(self, query: str, context: List[str]) -> str:
-        context_str = "\n\n".join(f"--- Reference {i + 1} ---\n{c}" for i, c in enumerate(context))
+    def build_prompt(self, query: str, context: List[Dict[str, Any]]) -> str:
+        """
+        Context items are expected to be dicts with 'code' (SQL) and 'metadata' (Schema)
+        """
+        context_str = ""
+        for i, item in enumerate(context):
+            # Assuming item is a dict from the index metadata
+            if isinstance(item, dict):
+                sql = item.get('code', '')
+                schema = item.get('metadata', {}).get('schema', '') if 'metadata' in item else item.get('schema', '')
+                context_str += f"--- Example {i + 1} ---\nSchema: {schema}\nSQL: {sql}\n\n"
+            else:
+                context_str += f"--- Example {i + 1} ---\n{item}\n\n"
+
         return (
-            f"You are an expert code assistant. Use the following references if helpful.\n\n"
-            f"Context:\n{context_str}\n\n"
+            f"You are an expert SQL assistant. Use the following examples to help answer the question.\n\n"
+            f"Context Examples:\n{context_str}\n"
             f"User Question: {query}\n\n"
-            f"Answer:"
+            f"SQL Query:"
         )
 
     def generate_program(self, prompt: str):

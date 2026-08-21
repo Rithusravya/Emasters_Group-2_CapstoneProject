@@ -48,17 +48,17 @@ class CodeEmbedder:
             model = AutoModel.from_pretrained(model_name, torch_dtype=self.dtype).to(self.device)
             return model, resolved_tokenizer, model_name
 
-        # A pre-loaded model instance was passed in directly.
-        model = model_name.to(self.device)
-        resolved_name = getattr(model_name, "name_or_path", "BAAI/bge-small-en-v1.5")
-        if tokenizer is not None:
-            resolved_tokenizer = tokenizer
-        else:
-            logger.warning(
-                f"No tokenizer passed with pre-loaded model. Loading default for '{resolved_name}'."
-            )
-            resolved_tokenizer = AutoTokenizer.from_pretrained(resolved_name)
-        return model, resolved_tokenizer, resolved_name
+        # # A pre-loaded model instance was passed in directly.
+        # model = model_name.to(self.device)
+        # resolved_name = getattr(model_name, "name_or_path", "BAAI/bge-small-en-v1.5")
+        # if tokenizer is not None:
+        #     resolved_tokenizer = tokenizer
+        # else:
+        #     logger.warning(
+        #         f"No tokenizer passed with pre-loaded model. Loading default for '{resolved_name}'."
+        #     )
+        #     resolved_tokenizer = AutoTokenizer.from_pretrained(resolved_name)
+        # return model, resolved_tokenizer, resolved_name
 
     def _extract_text_field(self, item: dict) -> str:
         for key in TEXT_FIELD_CANDIDATES:

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 # Default MongoDB query used when a source record doesn't have one of its own.
