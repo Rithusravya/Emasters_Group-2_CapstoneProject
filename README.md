@@ -1,4 +1,4 @@
-# CodeGen: Small Code-LM Fine-Tuning & Hybrid RAG Pipeline
+# CodeGen: Hybrid RAG Pipeline
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5.1-red)](https://pytorch.org/)
@@ -15,6 +15,7 @@ A capstone project (eMasters CS: AI & ML, Group 2) that fine-tunes a small open-
 - [System Architecture](#-system-architecture)
 - [Pipeline Stages](#-pipeline-stages)
 - [Benchmark Results](#-benchmark-results)
+- [Dataset](#-dataset)
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
 - [Repository Layout](#-repository-layout)
@@ -56,31 +57,31 @@ Retrieval embeddings are produced by the small code LM itself (no second embeddi
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│ 2. Model Loading & LoRA Fine-Tuning                              │
+│ 2. Model Loading & LoRA Fine-Tuning                             │
 │  • Load Qwen2.5-Coder-0.5B-Instruct (tokenizer + base weights)  │
-│  • Attach LoRA adapter, train on illustrative task examples      │
-│  • Save / reload adapter checkpoint                              │
+│  • Attach LoRA adapter, train on illustrative task examples     │
+│  • Save / reload adapter checkpoint                             │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│ 3. Generation Tasks                                              │
-│  • Text-to-SQL   • Documentation   • Program Synthesis           │
-│  • Commit Messages, evaluated for base model vs. LoRA model      │
+│ 3. Generation Tasks                                             │
+│  • Text-to-SQL   • Documentation   • Program Synthesis          │
+│  • Commit Messages, evaluated for base model vs. LoRA model     │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│ 4. Hybrid Indexing & RAG                                         │
-│  • CodeLMEmbedder → FAISS semantic index (IndexFlatIP)           │
-│  • ASTIndexer → structural fingerprints (Python AST / SQL regex) │
-│  • HybridRetriever → dense + structural blended top-K search     │
-│  • RAGPipeline → context injection + generation                  │
+│ 4. Hybrid Indexing & RAG                                        │
+│  • CodeLMEmbedder → FAISS semantic index (IndexFlatIP)          │
+│  • ASTIndexer → structural fingerprints (Python AST / SQL regex)│
+│  • HybridRetriever → dense + structural blended top-K search    │
+│  • RAGPipeline → context injection + generation                 │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│ 5. Evaluation & Comparison                                       │
-│  • Base vs. LoRA vs. RAG vs. LLM-baseline (ModelComparator)      │
-│  • RAG gain-over-baseline & top-K sweep (RAGEvaluator)           │
-│  • Charts (matplotlib) + JSON metrics persisted to output/       │
+│ 5. Evaluation & Comparison                                      │
+│  • Base vs. LoRA vs. RAG vs. LLM-baseline (ModelComparator)     │
+│  • RAG gain-over-baseline & top-K sweep (RAGEvaluator)          │
+│  • Charts (matplotlib) + JSON metrics persisted to output/      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -166,6 +167,34 @@ LoRA fine-tuning (trained on only 9 illustrative prompt/completion examples — 
 Plots for all of the above are saved under `output/plots/` (`scores_baseline_text_to_sql_vs_doc_generation.png`, `scores_finetuned_text_to_sql_vs_doc_generation.png`, `scores_model_comparison_checkpoint2.png`, `scores_model_comparison_full.png`, `topk_gain_sweep.png`).
 
 
+## Dataset
+
+This project uses the **[Spider](https://yale-lily.github.io/spider)** dataset — a large-scale, cross-domain text-to-SQL benchmark — as its primary evaluation dataset.
+
+> **Note:** The Spider dataset is **not included in this repository**. GitHub's file/repo upload limits make it impractical to commit the raw dataset (question/SQL pairs, table schemas, and per-database SQLite files), so it must be downloaded separately before running the pipeline.
+
+### Download
+
+1. Download the dataset from Google Drive: **[Spider dataset (Google Drive)](https://drive.google.com/file/d/1403EGqzIDoHMdQF4c9Bkyl7dZLZ5Wt6J/view)**
+   - Alternatively, see the [official Spider dataset page](https://yale-lily.github.io/spider) for the source release and licensing terms.
+2. Unzip the download and place its contents under `data/raw/Spider/` at the repository root, so that `dev.json`, `tables.json`, and the per-database SQLite files sit alongside each other, e.g.:
+
+   ```
+   data/raw/Spider/
+   ├── dev.json
+   ├── tables.json
+   └── database/
+       ├── concert_singer/
+       │   └── concert_singer.sqlite
+       └── ...
+   ```
+
+3. Run `src/scripts/convert_spider_to_jsonl.py` to convert the raw files into the normalized `data/processed/spider_eval.jsonl` and retrieval corpus used by the notebooks (see [Quick Start](#-quick-start)).
+
+`data/raw/`, `data/processed/`, and `data/indices/` are excluded via `.gitignore` for the same reason — they're generated/downloaded locally rather than versioned.
+
+---
+
 ## Installation
 
 ### Prerequisites
@@ -211,7 +240,7 @@ python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}')"
 
 This project is driven through notebooks, not a CLI. Typical order:
 
-1. **Prepare data** — `src/scripts/convert_spider_to_jsonl.py` converts raw Spider files (`data/raw/Spider/`) into `data/processed/spider_eval.jsonl` and a retrieval corpus; `src/scripts/prepare_processed_data.py` builds the MongoDB-style variant.
+1. **Download & prepare data** — download the Spider dataset as described in [Dataset](#-dataset) and place it under `data/raw/Spider/`. Then run `src/scripts/convert_spider_to_jsonl.py` to convert the raw Spider files into `data/processed/spider_eval.jsonl` and a retrieval corpus; `src/scripts/prepare_processed_data.py` builds the MongoDB-style variant.
 2. **Baseline evaluation** — open `baseline_model.ipynb` and run all cells to evaluate the un-adapted base model on text-to-SQL and documentation generation.
 3. **LoRA fine-tuning + evaluation** — open `finetuned_model.ipynb` to train (or reload) the LoRA adapter at `models/checkpoints/lora_finetuned/` and re-run the same evaluations.
 4. **RAG / top-K / LLM comparison** — open `eval.ipynb` to build the FAISS + AST indices, measure RAG gain, sweep top-K, and compare against the LLM baseline.
