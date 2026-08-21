@@ -92,13 +92,11 @@ The pipeline is run through a set of Jupyter notebooks rather than a single CLI 
 
 | Notebook | Stage |
 |---|---|
-| `check_point_1.ipynb` | Early data-loading / setup checkpoint |
-| `checkpoint_2.ipynb` | Config + base model load, doc-gen (BERTScore), text-to-SQL, program-gen, visualization, comparator |
 | `baseline_model.ipynb` | Loads the **un-adapted base model**, runs text-to-SQL and documentation generation, saves metrics to `outputs/generated/baseline_model_results.json` |
 | `finetuned_model.ipynb` | Loads/trains the **LoRA adapter**, re-runs the same two tasks, saves metrics to `outputs/generated/finetuned_model_results.json` |
 | `spider_eval.ipynb` | Spider-specific SQL execution evaluation |
 | `eval.ipynb` | RAG-gain measurement, top-K sweep, small-LM-vs-LLM comparison |
-| `main.ipynb` | Google Colab entry point |
+| `main.ipynb` | Complete End-to-End pipeline |
 
 Supporting production code lives in `src/` (see [Repository Layout](#-repository-layout)) and is imported by the notebooks — it is not currently exposed as a standalone CLI script.
 
@@ -289,8 +287,6 @@ Emasters_Group-2_CapstoneProject/
 ├── outputs/generated/                 # Per-task generated samples & timestamped run results
 ├── output/plots/                      # Saved comparison charts
 ├── backup/                            # Earlier snapshot of evaluation/rag/embeddings modules
-├── check_point_1.ipynb                # Checkpoint 1 notebook
-├── checkpoint_2.ipynb                 # Checkpoint 2 notebook
 ├── baseline_model.ipynb               # Base model evaluation
 ├── finetuned_model.ipynb              # LoRA fine-tuning + evaluation
 ├── spider_eval.ipynb                  # Spider execution-based SQL evaluation
@@ -346,8 +342,6 @@ outputs:
   metrics_path: "output/metrics/evaluation_metrics.json"
   plots_dir: "output/plots"
 ```
-
-> **Note:** the checked-in `configs/config.yaml` has some duplicated/nested keys (`generation`, `lora`, `model`) left over from earlier edits, and the saved LoRA checkpoint was actually trained with only the four attention projections (`q_proj`, `k_proj`, `v_proj`, `o_proj`), not the full seven-module list shown above. Reconciling the config with the checkpoint is tracked as a follow-up (see [Known Limitations](#-known-limitations--future-work)). Also **remove the literal API keys** from this file — see the [Security Note](#️-security-note-before-you-share-this-repo).
 
 ---
 
