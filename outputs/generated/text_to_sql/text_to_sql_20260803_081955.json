@@ -1,7 +1,0 @@
-{
-  "question": "Find the total number of employees in the engineering department who joined after 2022.",
-  "schema": "Table employee(id, name, department, join_year)",
-  "dialect": "sqlite",
-  "sql_query": "SELECT COUNT(*) FROM employee WHERE department = 'engineering' AND join_year > 2022",
-  "mongodb_query": "db.collection.find({})"
-}

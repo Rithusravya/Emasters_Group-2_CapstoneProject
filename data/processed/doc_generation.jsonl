@@ -1,3 +1,0 @@
-{"id": "doc_sample_001", "task": "doc_generation", "code": "def add(a, b):\n    return a + b", "docstring": "Adds two numbers and returns the result."}
-{"id": "doc_sample_002", "task": "doc_generation", "code": "def multiply(a, b):\n    return a * b", "docstring": "Multiplies two numbers and returns the result."}
-{"id": "doc_sample_003", "task": "doc_generation", "code": "def is_positive(number):\n    return number > 0", "docstring": "Checks whether the given number is positive."}

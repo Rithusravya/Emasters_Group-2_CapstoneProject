@@ -1,8 +1,0 @@
-{
-  "question": "Find the total number of employees in the engineering department who joined after 2022.",
-  "schema": "Table employee(id, name, department, join_year)",
-  "dialect": "sqlite",
-  "sql_query": "",
-  "valid": false,
-  "parse_error": "invalid_sql_query"
-}
