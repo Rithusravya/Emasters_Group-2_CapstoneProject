@@ -1,0 +1,35 @@
+{
+  "comparison_results": {
+    "Base_Model": {
+      "BLEU": 0.169,
+      "ROUGE-1": 0.5516,
+      "ROUGE-L": 0.5229,
+      "BERTScore": 0.9046,
+      "Exact_Match": 0.0,
+      "Response_Accuracy": 0.8915
+    },
+    "LoRA_Model": {
+      "BLEU": 0.1614,
+      "ROUGE-1": 0.4963,
+      "ROUGE-L": 0.472,
+      "BERTScore": 0.8787,
+      "Exact_Match": 0.0,
+      "Response_Accuracy": 0.8582
+    },
+    "RAG_Pipeline": {
+      "BLEU": 0.0108,
+      "ROUGE-1": 0.3863,
+      "ROUGE-L": 0.3668,
+      "BERTScore": 0.8288,
+      "Exact_Match": 0.0,
+      "Response_Accuracy": 0.6467
+    }
+  },
+  "latency_ms": {
+    "Base_Model": 54359.04653180005,
+    "LoRA_Model": 68160.6798937999,
+    "RAG_Pipeline": 42717.85978660009
+  },
+  "eval_sample_count": 5,
+  "best_k": 2
+}
