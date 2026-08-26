@@ -10,13 +10,13 @@ class LargeLLMGenerator:
     """
     Wrapper for Google Gemini API to serve as an upper-bound baseline for fast, reliable generation.
     """
-    def __init__(self, config=None, backend: str = "api", api_model: str = "gemini-2.5-flash", local_model_name: str = None):
+    def __init__(self, config=None, backend: str = "api", api_model: str = "gemini-3.6-flash", local_model_name: str = None):
         self.backend = backend
         self.api_model = api_model
         self.local_model_name = local_model_name
         self.client = None
         self.config = config
-        self.api_key_env_name = "AQ.Ab8RN6Ix4XRtM1cRSu3_KD7opq0fzJmOvq7TGXgLhofNnv1-QQ"
+        self.api_key_env_name = "api-key"
 
         # Override with config if provided
         if config and hasattr(config, "llm_baseline"):
