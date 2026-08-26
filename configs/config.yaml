@@ -1,0 +1,105 @@
+# ============================================================
+# General & System Configurations
+# ============================================================
+project_name: "Emasters_Group-2_CapstoneProject"
+seed: 42
+device: "auto"  # Options: 'auto', 'cuda', 'mps', 'cpu'
+dtype: "float16"  # Options: 'float16', 'bfloat16', 'float32'
+
+# ============================================================
+# Model & Tokenizer Configs
+# ============================================================
+model_name: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+lora_adapter_path: "models/checkpoints/lora_finetuned"
+
+# ============================================================
+# Embedding Model Configs
+# ============================================================
+embedding_model: "BAAI/bge-small-en-v1.5"  # used only when embedding.source == "external"
+embedding:
+  source: "external"  # Options: 'code_lm' or 'external'
+  external_model: "BAAI/bge-small-en-v1.5"
+  max_length: 512
+  batch_size: 32
+
+# ============================================================
+# Retrieval Settings (semantic + AST/structural hybrid search)
+# ============================================================
+retrieval:
+  hybrid: true
+  structural_weight_alpha: 0.7
+  structural_language: "mongodb"
+  topk_sweep: [1, 2, 3, 5, 8]
+
+# ============================================================
+# Large-LLM baseline (for "small code LM vs. LLM" comparison)
+# ============================================================
+llm_baseline:
+  backend: "api"  # Options: 'local' or 'api'
+  local_model: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+  api_model: "gemini-3.6-flash"
+  api_key_env: "api-key"
+  max_new_tokens: 256
+  temperature: 0.2
+
+# ============================================================
+# Dataset Paths
+# ============================================================
+data_paths:
+  raw_dir: "data/raw"
+  spider: "spider_real_execution_mongo.json"
+
+# ============================================================
+# FAISS Vector & AST Index Paths
+# ============================================================
+indices_paths:
+  faiss_index: "data/indices/faiss_semantic.index"
+  ast_store: "data/indices/ast_store.pkl"
+
+# ============================================================
+# Text Generation Parameters
+# ============================================================
+generation:
+  max_length: 512
+  temperature: 0.2
+  top_k: 50
+  top_p: 0.95
+  num_return_sequences: 1
+
+# ============================================================
+# Evaluation Settings
+# ============================================================
+evaluation:
+  device: "cpu"  # CodeBERTScore device
+  bertscore_model: "microsoft/codebert-base"
+  bertscore_local_path: "models/codebert-base"
+  timeout_seconds: 3
+
+# ============================================================
+# LoRA Training Settings
+# ============================================================
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  batch_size: 1
+  learning_rate: 0.0002
+  epochs: 1
+  output_dir: "models/checkpoints/lora_finetuned"
+  trainable_fraction: 1.0  # Fraction of LoRA parameters to train (0.0 to 1.0)
+
+# ============================================================
+# Indexing Settings
+# ============================================================
+indexing:
+  top_k: 3
+  vector_dim: 1024  # Must match embedding model's output dimension
+
+# ============================================================
+# Outputs & Evaluation Paths
+# ============================================================
+outputs:
+  logs_dir: "output/logs"
+  metrics_path: "output/metrics/evaluation_metrics.json"
+  plots_dir: "output/plots"
+  generated_dir: "outputs/generated"
