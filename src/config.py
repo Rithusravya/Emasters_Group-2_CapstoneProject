@@ -61,7 +61,7 @@ class LLMBaselineConfig:
     backend: str = "api"  # 'local' or 'api'
     local_model: str = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
     api_model: str = "gemini-3.6-flash"
-    api_key_env: str = "AQ.Ab8RN6Ix4XRtM1cRSu3_KD7opq0fzJmOvq7TGXgLhofNnv1-QQ"
+    api_key_env: str = "api key"
     max_new_tokens: int = 256
     temperature: float = 0.2
 
