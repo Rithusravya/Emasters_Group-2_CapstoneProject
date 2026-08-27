@@ -1,0 +1,11 @@
+{
+  "Text_to_MongoDB": {
+    "BLEU": 0.2019,
+    "CodeBERTScore": 0.8817,
+    "ROUGE-1": 0.536,
+    "ROUGE-L": 0.4462,
+    "Response_Accuracy": 0.7624
+  },
+  "Avg_Latency_ms": 54060.22,
+  "n_samples": 100
+}

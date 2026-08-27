@@ -1,0 +1,804 @@
+{
+    "results": [
+        {
+            "query_id": "sample_0",
+            "database_id": "concert_singer",
+            "question": "How many singers do we have?",
+            "gold_query": "db.singer.countDocuments()",
+            "generated_query": "db.actors.countDocuments()db.singer.aggregate([{$group:{_id:\"count\"}}, {$project:{}})])`",
+            "latency_ms": 15206.56
+        },
+        {
+            "query_id": "sample_1",
+            "database_id": "concert_singer",
+            "question": "What is the total number of singers?",
+            "gold_query": "db.singer.countDocuments()",
+            "generated_query": "db.actors.countDocuments()db.singer.aggregate([{$group: {_id: null, count: {$sum: 1}}}, {project: {_count: 0}}])`",
+            "latency_ms": 16788.79
+        },
+        {
+            "query_id": "sample_2",
+            "database_id": "concert_singer",
+            "question": "Show name, country, age for all singers ordered by age from the oldest to the youngest.",
+            "gold_query": "db.singer.find({}, {Name: 1, Country: 1, Age: 1, _id: 0}).sort({Age: -1})",
+            "generated_query": "db.actors.find({}, {Name: 1, Country: 2, Age: 3}).sort({Age: -1})db.singer.aggregate([{$group: {_id: \"$Country\", count: {$sum: 0}}}, {$match: {count: {$gte: 5}}}, $project: {_ID: 4}])",
+            "latency_ms": 35671.51
+        },
+        {
+            "query_id": "sample_3",
+            "database_id": "concert_singer",
+            "question": "What are the names, countries, and ages for every singer in descending order of age?",
+            "gold_query": "db.singer.find({}, {Name: 1, Country: 1, Age: 1, _id: 0}).sort({Age: -1})",
+            "generated_query": "db.actors.find({}, {Name: 1, Country: 2, Age: 3}).sort({Age: -1})db.singer.aggregate([{$group: {_id: \"$Country\", singers: {$addToSet: \"$Singer\"}}}, {$project: {_ID: 0, country: \"$_id\", name: \"$singers.name\", age: \"$age\"}}])",
+            "latency_ms": 32369.18
+        },
+        {
+            "query_id": "sample_4",
+            "database_id": "concert_singer",
+            "question": "What is the average, minimum, and maximum age of all singers from France?",
+            "gold_query": "db.singer.aggregate([{$match: {Country: \"France\"}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}, min_age: {$min: \"$Age\"}, max_age: {$max: \"$Age\"}}}])",
+            "generated_query": "db.actors.aggregate([{$match: {Country: \"France\"}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}, min_age: {\"$min\": \"$Age\"},",
+            "latency_ms": 70771.44
+        },
+        {
+            "query_id": "sample_5",
+            "database_id": "concert_singer",
+            "question": "What is the average, minimum, and maximum age for all French singers?",
+            "gold_query": "db.singer.aggregate([{$match: {Country: \"France\"}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}, min_age: {$min: \"$Age\"}, max_age: {$max: \"$Age\"}}}])",
+            "generated_query": "db.actors.aggregate([{$match: {Nationality: \"France\"}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}, min_age: {\"$min\": \"$Age\"},",
+            "latency_ms": 64952.6
+        },
+        {
+            "query_id": "sample_6",
+            "database_id": "concert_singer",
+            "question": "Show the name and the release year of the song by the youngest singer.",
+            "gold_query": "db.singer.aggregate([{$sort: {Age: 1}}, {$limit: 1}, {$lookup: {from: \"song\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"songs\"}}, {$unwind: \"$songs\"}, {$project: {_id: 0, singer_name: \"$Name\", song_name: \"$songs.Song_name\", release_year: \"$songs.Song_release_year\"}}])",
+            "generated_query": "db.liked_singer.aggregate([{$group: {_id: \"$Singer_ID\", age: {$avg: \"$Age\"}}}, {$sort: {age: -1}}, {$lookup: {from: \"singer\", localField: \"_id\", foreignField: \"Singer_Id\", as: \"singers\"}}, {$unwind: \"$singers\"}, {$project: {_ID: 0, Name: \"$Name\", Year: \"$Singers.Year_of_birth\"}}])})}])})})})}))})})])})])])})]})])]])])])])}]])])]]])]]]]]]}}[[",
+            "latency_ms": 70410.97
+        },
+        {
+            "query_id": "sample_7",
+            "database_id": "concert_singer",
+            "question": "What are the names and release years for all the songs of the youngest singer?",
+            "gold_query": "db.singer.aggregate([{$sort: {Age: 1}}, {$limit: 1}, {$lookup: {from: \"song\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"songs\"}}, {$unwind: \"$songs\"}, {$project: {_id: 0, song_name: \"$songs.Song_name\", release_year: \"$songs.Song_release_year\"}}])",
+            "generated_query": "db.liked_singer.aggregate([{$group: {_id: \"$Singer_ID\", age: {$avg: \"$Age\"}}}, {$match: {age: {$lte: 25}}}, {$lookup: {from: \"song\", localField: \"_id\", foreignField: \"Song_ID\", as: \"songs\"}}, {$unwind: \"$songs\"}, {$project: {_ID: 0, song_name: \"$Songs.Song_Name\", year: \"$year\"}}])})db.singer.find({}, {Name: 1, Age: 3}).sort({Age: -1}).limit(1)",
+            "latency_ms": 67301.22
+        },
+        {
+            "query_id": "sample_8",
+            "database_id": "concert_singer",
+            "question": "What are all distinct countries where singers above age 20 are from?",
+            "gold_query": "db.singer.distinct(\"Country\", {Age: {$gt: 20}})",
+            "generated_query": "db.actors.aggregate([{$match:{Age: {$gt: 21}}}, {$lookup: {from: \"singer\", localField: \"Actors_ID\", foreignField: 'ID', as: \"singers\"}}, {$unwind: \"$singers\"}, {$group: {_id: \"$CountryCode\"}},{$project: {_ids: 0, country_code: \"$_id\"}}])}db.singer.find({Singer_Name: {$regex: \"above age 35\"}}, {Hometown: 1, _id:  0})$project:_id,hometown FROM singer WHERE",
+            "latency_ms": 74511.26
+        },
+        {
+            "query_id": "sample_9",
+            "database_id": "concert_singer",
+            "question": "What are the different countries with singers above age 20?",
+            "gold_query": "db.singer.distinct(\"Country\", {Age: {$gt: 20}})",
+            "generated_query": "db.actors.aggregate([{$match:{Age: {$gt: 21}}}, {$group:{_id:\"Country\", count:{$sum:$count}}}], {$project:{country: \"_id\"}})}])[\"result\"][:3] # [\"USA\",\"Canada\",\"Mexico\"] # Correct Answer",
+            "latency_ms": 75336.67
+        },
+        {
+            "query_id": "sample_10",
+            "database_id": "concert_singer",
+            "question": "Show all countries and the number of singers in each country.",
+            "gold_query": "db.singer.aggregate([{$group: {_id: \"$Country\", count: {$sum: 1}}}, {$project: {_id: 0, country: \"$_id\", count: 1}}])",
+            "generated_query": "db.actors.aggregate([{$group: {_id: \"$Country\", count: {$sum: 1}}}, {$project: {_ID: 0, Country: \"$_id\", countOfSinger: \"$count\"}}])db.singer.countDocuments() - Number Of Singers",
+            "latency_ms": 70346.8
+        },
+        {
+            "query_id": "sample_11",
+            "database_id": "concert_singer",
+            "question": "How many singers are from each country?",
+            "gold_query": "db.singer.aggregate([{$group: {_id: \"$Country\", count: {$sum: 1}}}, {$project: {_id: 0, country: \"$_id\", count: 1}}])",
+            "generated_query": "db.actors.aggregate([{$group: {_id: \"$Country\", count: {$sum: 1}}}, {$project: {_ID: 0, country: \"$_id\", count_of_singer: \"$count\"}}])db.singer.countDocuments() - db.actor.group({country: \"India\"}).size; //2",
+            "latency_ms": 74160.59
+        },
+        {
+            "query_id": "sample_12",
+            "database_id": "concert_singer",
+            "question": "List all song names by singers above the average age.",
+            "gold_query": "db.singer.aggregate([{$group: {_id: null, avgAge: {$avg: \"$Age\"}}}, {$lookup: {from: \"singer\", let: {avg: \"$avgAge\"}, pipeline: [{$match: {$expr: {$gt: [\"$Age\", \"$$avg\"]}}}, {$lookup: {from: \"song\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"songs\"}}, {$unwind: \"$songs\"}, {$project: {_id: 0, song_name: \"$songs.Song_name\"}}], as: \"result\"}}, {$unwind: \"$result\"}, {$replaceRoot: {newRoot: \"$result\"}}])",
+            "generated_query": "db.actors.aggregate([{$group: {_id: \"$Singer_ID\", avg_age: {$avg: \"$Age\"}}}, {$match: {avg_age: {\"$gt\": 10}}}, {$lookup: {from: \"songs\", localField: \"_id\", foreignField: \"Singer_Id\", as: \"song\"}}, {$unwind: \"$song\"}, {$project: {_ID: 0, name: \"$Name\"}}])}db.singer.find({}, {Average_Age: 1, _id: 2}) $addFields: {average_age: {type: Number, sum:",
+            "latency_ms": 68443.91
+        },
+        {
+            "query_id": "sample_13",
+            "database_id": "concert_singer",
+            "question": "What are all the song names by singers who are older than average?",
+            "gold_query": "db.singer.aggregate([{$group: {_id: null, avgAge: {$avg: \"$Age\"}}}, {$lookup: {from: \"singer\", let: {avg: \"$avgAge\"}, pipeline: [{$match: {$expr: {$gt: [\"$Age\", \"$$avg\"]}}}, {$lookup: {from: \"song\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"songs\"}}, {$unwind: \"$songs\"}, {$project: {_id: 0, song_name: \"$songs.Song_name\"}}], as: \"result\"}}, {$unwind: \"$result\"}, {$replaceRoot: {newRoot: \"$result\"}}])",
+            "generated_query": "db.actors.aggregate([{$group: {_id: null, avg_age: {$avg: \"$Age\"}}}, {$lookup: {from: \"singer\", localField: \"_id\", foreignField: \"Singer_ID\", as: \"singers\"}}, {$unwind: \"$singers\"}, {$match: {\"Singers.Age\": {$gt: \"$avg_age\"}}},{$project: {_all: 1}}])}db.singer.find({}, {Name: 0})`db.song.aggregate([{$sort: {Year: -1}}, {$limit: 5}, {$group: {song_name: {$",
+            "latency_ms": 67619.04
+        },
+        {
+            "query_id": "sample_14",
+            "database_id": "concert_singer",
+            "question": "Show location and name for all stadiums with a capacity between 5000 and 10000.",
+            "gold_query": "db.stadium.find({Capacity: {$gte: 5000, $lte: 10000}}, {Location: 1, Stadium_Name: 1, _id: 0})",
+            "generated_query": "db.football_stadium.find({Capacity: {$gte: 5, $lte: 1e4}}, {Location: 2, Stadium_Name: 3})db.stadium.aggregate([{$match: {Capacity: {gt: 600, lt: 900}}}, {$project: {_id: 0, Location: \"$Location\", Stadium_Name\": \"$Stadium_Name\"}}])} # This is the aggregation pipeline that will be executed on the database to find the desired output. The first stage of the pipeline uses the match operator to filter documents where the Capacity field has values greater than or equal to",
+            "latency_ms": 71154.31
+        },
+        {
+            "query_id": "sample_15",
+            "database_id": "concert_singer",
+            "question": "What are the locations and names of all stations with capacity between 5000 and 10000?",
+            "gold_query": "db.stadium.find({Capacity: {$gte: 5000, $lte: 10000}}, {Location: 1, Stadium_Name: 1, _id: 0})",
+            "generated_query": "db.trafist.aggregate([{$match: {Capacity: {$gte: 5, $lte: 1}}}, {$lookup: {from: \"station\", localField: \"Station_ID\", foreignField: 'id', as: \"stations\"}}, {$unwind: \"$stations\"}, {$project: {_id: 0, location_name: \"$location_id\", station_name: \"name\"}}])}db.station.find({Name: {$regex: \"Trafist\"}}, {Location_Name: 2})$group: {_ID: null, name: {$addToSet: \"$Name\"}})db.stations.aggregate",
+            "latency_ms": 70759.92
+        },
+        {
+            "query_id": "sample_16",
+            "database_id": "concert_singer",
+            "question": "What is the maximum capacity and the average of all stadiums ?",
+            "gold_query": "db.stadium.aggregate([{$group: {_id: null, max_capacity: {$max: \"$Capacity\"}, avg_capacity: {$avg: \"$Capacity\"}}}])",
+            "generated_query": "db.football_stadium.aggregate([{$group: {_id: null, max_capacity: {$max: \"$Capacity\"}, avg_capacity: {avg: {$sum: \"$Average\"}}}}, {$project: {_ID: 0, max_cap: 1, avg_cap: -1}}])db.stadium.find({}, {Max_Capacity: 2, Avg_Average: 3})$DB query to find the maximum Capacity and Average from a collection called stadium with no additional conditions provided. The result should be in an array format where each element represents one document containing the results for that specific row. Please note that you can only",
+            "latency_ms": 79129.91
+        },
+        {
+            "query_id": "sample_17",
+            "database_id": "concert_singer",
+            "question": "What is the average and maximum capacities for all stadiums ?",
+            "gold_query": "db.stadium.aggregate([{$group: {_id: null, avg_capacity: {$avg: \"$Capacity\"}, max_capacity: {$max: \"$Capacity\"}}}])",
+            "generated_query": "db.football_stadium.aggregate([{$group: {_id: null, avg_capacity: {$avg: \"$Capacity\"}, max_capacity: {max: \"$capacity\"}}}, {$project: {_ID: 0, avg_cap: 1, max_cap: -1}}])db.stadium.find({}, {Average_Price: 2, Max_Price: -2})$db.matches.aggregate([{lookup: {from: \"stadium\", localField: \"Stadium_ID\", foreignField: \"_id\", as: \"s\"}}, {$unwind: \"$s\"}, {$match: {\"s.Capacity\": {$gt: 50",
+            "latency_ms": 68062.24
+        },
+        {
+            "query_id": "sample_18",
+            "database_id": "concert_singer",
+            "question": "What is the name and capacity for the stadium with highest average attendance? ",
+            "gold_query": "db.stadium.find({}, {Name: 1, Capacity: 1, _id: 0}).sort({Average: -1}).limit(1)",
+            "generated_query": "db.athletes.aggregate([{$group: {_id: \"$Stadium\", avg_attendance: {$avg: \"$Attendance\"}}}, {$sort: {avg_attendance:-1}}, {$limit: 1}, {$lookup: {from: \"stadiums\", localField: \"_id\", foreignField: \"SId\", as: \"stad\"}}, {$unwind: \"$stad\"}, {$project: {_ID: 0, name: \"$name\", capacity: \"$capacity\"}}])}db.matches.find({}, {home_team_name: 2, away_team_name_2: 3})`",
+            "latency_ms": 66305.35
+        },
+        {
+            "query_id": "sample_19",
+            "database_id": "concert_singer",
+            "question": "What is the name and capacity for the stadium with the highest average attendance? ",
+            "gold_query": "db.stadium.find({}, {Name: 1, Capacity: 1, _id: 0}).sort({Average: -1}).limit(1)",
+            "generated_query": "db.athletes.aggregate([{$group: {_id: \"$Stadium\", avg_attendance: {$avg: \"$Attendance\"}}}, {$sort: {avg_attendance:-1}}, {$limit: 1}, {$lookup: {from: \"stadiums\", localField: \"_id\", foreignField: \"SId\", as: \"stad\"}}, {$unwind: \"$stad\"}, {$project: {_ID: 0, name: \"$name\", capacity: \"$capacity\"}}])}db.matches.find({}, {Match_ID: 2})` to get all match_id of matches that have not been played yet in a specific",
+            "latency_ms": 70455.53
+        },
+        {
+            "query_id": "sample_20",
+            "database_id": "concert_singer",
+            "question": "How many concerts are there in year 2014 or 2015? ",
+            "gold_query": "db.concert.countDocuments({$or: [{Year: 2014}, {Year: 2015}]})",
+            "generated_query": "db.concert.countDocuments({Year: {$in: [2009, 2387]}})db.concert.aggregate([{$group: {_id: \"$MajorGenre\"}}, {$match: {AgeGroup: \"Adult\", _id: 1}}, {$count: \"_id\"}, {$project: {_date_id: 0, count: 2}}])",
+            "latency_ms": 42459.34
+        },
+        {
+            "query_id": "sample_21",
+            "database_id": "concert_singer",
+            "question": "How many concerts occurred in 2014 or 2015? ",
+            "gold_query": "db.concert.countDocuments({$or: [{Year: 2014}, {Year: 2015}]})",
+            "generated_query": "db.concert.countDocuments({Year: {$in: [2009, 2367]}}) + db.concert.countDocuments() - db.consert.countDocuments({\"Year\": {$gt: 2280}}) #db.creativity.aggregate([{$match: {MajorGenre: \"Rock\"}}, {$group: {_id: \"$MinorArtist\", count: {$sum: 1}}}, {$addFields: {major_count: {$multiply: [\"$count\", 1]}}}, {\"$cond\": [{\"expr\": \"$major_count\" > 0}, 1, 0]}, {$size",
+            "latency_ms": 71566.84
+        },
+        {
+            "query_id": "sample_22",
+            "database_id": "concert_singer",
+            "question": "Show the stadium name and the number of concerts in each stadium. ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$project: {_id: 0, name: \"$Name\", concert_count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.venue.aggregate([{$group: {_id: \"$Stadium\", count: {$sum: 1}}}, {$project: {_ID: 0, name: \"$_id\", concert_count: 2}}])db.stadium.find({}, {Name: 3, Concert_Count: 4})`",
+            "latency_ms": 36908.44
+        },
+        {
+            "query_id": "sample_23",
+            "database_id": "concert_singer",
+            "question": "For each stadium, how many concerts play there? ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$project: {_id: 0, name: \"$Name\", concert_count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.venue.aggregate([{$group: {_id: \"$Stadium\", count: {$sum: 1}}}, {$project: {_ID: 0, name: \"$_id\", concert_count: 2}}])db.stadium.aggregate([{lookup: {from: \"concert\", localField: \"_id\", foreignField: \"stadium_id\", as: \"c\"}}, {$unwind: \"$c\"}, {$count: \"num_concerts\"}], function(err, result) {",
+            "latency_ms": 66500.42
+        },
+        {
+            "query_id": "sample_24",
+            "database_id": "concert_singer",
+            "question": "Show the stadium name and capacity with most number of concerts in year 2014 or after. ",
+            "gold_query": "db.concert.aggregate([{$match: {Year: {$gte: 2014}}}, {$group: {_id: \"$Stadium_ID\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 1}, {$lookup: {from: \"stadium\", localField: \"_id\", foreignField: \"Stadium_ID\", as: \"stadium_info\"}}, {$unwind: \"$stadium_info\"}, {$project: {_id: 0, name: \"$stadium_info.Name\", capacity: \"$stadium_info.Capacity\"}}])",
+            "generated_query": "db.venue.aggregate([{$match:{Year: {$gte: 2, $lte: 99}}}, {$group:{_id:\"Name\", count:{$sum:$count}}, max_count:{$max:max($count)}}], {$project:{name: \"$_id\", capacity: \"$capacity\"}})])}db.stadium.find({}, {Capacity: 1, Name: 0})$query = {\"year\": {$gt: 3, $lt: 5}} & group by name order by sum(count) desc limit 1}$result[0]{\"Stadium_name\":\"The Stadio\",\"Capacity\":7",
+            "latency_ms": 71971.92
+        },
+        {
+            "query_id": "sample_25",
+            "database_id": "concert_singer",
+            "question": "What is the name and capacity of the stadium with the most concerts after 2013 ? ",
+            "gold_query": "db.concert.aggregate([{$match: {Year: {$gte: 2014}}}, {$group: {_id: \"$Stadium_ID\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 1}, {$lookup: {from: \"stadium\", localField: \"_id\", foreignField: \"Stadium_ID\", as: \"stadium_info\"}}, {$unwind: \"$stadium_info\"}, {$project: {_id: 0, name: \"$stadium_info.Name\", capacity: \"$stadium_info.Capacity\"}}])",
+            "generated_query": "db.venue.aggregate([{$match:{Year_of_Concert:>2004}}, {$group:{_id:\"Name\",capacity_sum:$sum(Capacity)}}, {$sort:{capacity_sum:-1}}, {$limit:1}, {$project:name_capacity_name:_id}])db.stadium.find({}, {name_capacity_name: 1, _id: 0})",
+            "latency_ms": 56864.9
+        },
+        {
+            "query_id": "sample_26",
+            "database_id": "concert_singer",
+            "question": "Which year has most number of concerts? ",
+            "gold_query": "db.concert.aggregate([{$group: {_id: \"$Year\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 1}, {$project: {_id: 0, year: \"$_id\"}}])",
+            "generated_query": "db.concert.aggregate([{$group: {_id: \"$Year\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 2}])[\"_id\"]db.concert.find({}, {Year: 0, _id: 3}).sort({Year: -2})[0].Year",
+            "latency_ms": 59376.41
+        },
+        {
+            "query_id": "sample_27",
+            "database_id": "concert_singer",
+            "question": "What is the year that had the most concerts? ",
+            "gold_query": "db.concert.aggregate([{$group: {_id: \"$Year\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 1}, {$project: {_id: 0, year: \"$_id\"}}])",
+            "generated_query": "db.concert.aggregate([{$group: {_id: \"$Year\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 2}, {$project: {_ID: 0, Year: \"$_id\"}}])}db.concert.find({}, {Date: 3}).sort({Year: -5})[0].Year",
+            "latency_ms": 56170.58
+        },
+        {
+            "query_id": "sample_28",
+            "database_id": "concert_singer",
+            "question": "Show the stadium names without any concert. ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$match: {concerts: {$size: 0}}}, {$project: {_id: 0, name: \"$Name\"}}])",
+            "generated_query": "db.venue.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: 'Stadium_Code', as: \"concerts\"}}, {$match: {concerts: {$size: 0}}}, {$project: {_id: 1, name: \"$Name\"}}])}",
+            "latency_ms": 65594.22
+        },
+        {
+            "query_id": "sample_29",
+            "database_id": "concert_singer",
+            "question": "What are the names of the stadiums without any concerts? ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$match: {concerts: {$size: 0}}}, {$project: {_id: 0, name: \"$Name\"}}])",
+            "generated_query": "db.venue.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: 'Stadium_Code', as: \"concerns\"}}, {$match: {concernts: {$size: 0}}}, {$project: {_id: 1, name: \"$Name\"}}])}",
+            "latency_ms": 38397.97
+        },
+        {
+            "query_id": "sample_30",
+            "database_id": "concert_singer",
+            "question": "Show countries where a singer above age 40 and a singer below 30 are from. ",
+            "gold_query": "db.singer.aggregate([{$group: {_id: \"$Country\", hasOld: {$max: {$cond: [{$gt: [\"$Age\", 40]}, 1, 0]}}, hasYoung: {$max: {$cond: [{$lt: [\"$Age\", 30]}, 1, 0]}}}}, {$match: {hasOld: 1, hasYoung: 1}}, {$project: {_id: 0, country: \"$_id\"}}])",
+            "generated_query": "db.actors.aggregate([{$match: {Age: {$gte: 41, $lte: 59}}}, {$lookup: {from: \"singer\", localField: \"Actors_ID\", foreignField: 'ID', as: \"singers\"}}, {$unwind: \"$singers\"}, {$group: {_id: \"$CountryCode\", hasAbove: {$max: {\"Singers.Age\": {$gt: 39}}}}, {$project: {_idd: 0, country_code: \"_id\"}}])})[\"_ids\"]db.singer.find({Hometown: \"Los Angeles\"}, {Name",
+            "latency_ms": 67441.5
+        },
+        {
+            "query_id": "sample_31",
+            "database_id": "concert_singer",
+            "question": "Show names for all stadiums except for stadiums having a concert in year 2014. ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", let: {sid: \"$Stadium_ID\"}, pipeline: [{$match: {$expr: {$and: [{$eq: [\"$Stadium_ID\", \"$$sid\"]}, {$eq: [\"$Year\", 2014]}]}}}], as: \"c2014\"}}, {$match: {c2014: {$size: 0}}}, {$project: {_id: 0, name: \"$Name\"}}])",
+            "generated_query": "db.venue.aggregate([{$match:{Year: {$ne: 2}}}, {$lookup: {from: \"stadium\", localField: \"Stadium_ID\", foreignField: 'Stadium_Code\", as: \"s\"}}, {$unwind: \"$s\"}, {$project: {_id: 0, name: \"$Name\"}}])}db.stadium.find({City: \"London\"}, {State: 1, _id: false})`",
+            "latency_ms": 50980.01
+        },
+        {
+            "query_id": "sample_32",
+            "database_id": "concert_singer",
+            "question": "What are the names of all stadiums that did not have a concert in 2014? ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", let: {sid: \"$Stadium_ID\"}, pipeline: [{$match: {$expr: {$and: [{$eq: [\"$Stadium_ID\", \"$$sid\"]}, {$eq: [\"$Year\", 2014]}]}}}], as: \"c2014\"}}, {$match: {c2014: {$size: 0}}}, {$project: {_id: 0, name: \"$Name\"}}])",
+            "generated_query": "db.venue.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: 'Stadium', as: \"concerts\"}}, {$match: {\"concert.Year\": 2}}, {$project: {_id: 0, name: \"$Name\"}}])db.stadium.find({Concerts: {$size: 1} }, {Name: 3}) // $size is used to count number of documents with given field value",
+            "latency_ms": 65064.72
+        },
+        {
+            "query_id": "sample_33",
+            "database_id": "concert_singer",
+            "question": "Show the name and theme for all concerts and the number of singers in each concert. ",
+            "gold_query": "db.concert.aggregate([{$lookup: {from: \"singer_in_concert\", localField: \"concert_ID\", foreignField: \"concert_ID\", as: \"singers\"}}, {$project: {_id: 0, name: \"$Name\", theme: \"$Theme\", singer_count: {$size: \"$singers\"}}}])",
+            "generated_query": "db.orchestra.aggregate([{$group: {_id: \"$Concert_ID\", count_singer: {$sum: 1}}}, {$project: {_ID: 0, concert_name: \"$_id\", singer_count: \"$count_singer\"}}])db.singer.aggregate([function() {this.countDocuments();}]).then(function(count) {",
+            "latency_ms": 67111.03
+        },
+        {
+            "query_id": "sample_34",
+            "database_id": "concert_singer",
+            "question": "What are the names , themes , and number of singers for every concert ? ",
+            "gold_query": "db.concert.aggregate([{$lookup: {from: \"singer_in_concert\", localField: \"concert_ID\", foreignField: \"concert_ID\", as: \"singers\"}}, {$project: {_id: 0, name: \"$Name\", theme: \"$Theme\", singer_count: {$size: \"$singers\"}}}])",
+            "generated_query": "db.concert.aggregate([{$group:{_id:\"$_id\",name:some_field_name,theme:some_other_theme,singer_count:$sum(singer_id)}}, {$project:{Name:name,Theme:theme,Singer_Count:singer_count}}])  # Replace some_field_name and some_other_theme with actual field name in your database schema",
+            "latency_ms": 74861.65
+        },
+        {
+            "query_id": "sample_35",
+            "database_id": "concert_singer",
+            "question": "List singer names and number of concerts for each singer. ",
+            "gold_query": "db.singer.aggregate([{$lookup: {from: \"singer_in_concert\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"concerts\"}}, {$project: {_id: 0, name: \"$Name\", concert_count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.orchestra.aggregate([{$group: {_id: \"$Singer\", count: {$sum: 1}}}, {$project: {_ID: 0, name: \"$_id\", concert_count: 2}}])db.singer.find({}, {Name: 3, Concert_Count: 4})$db.concert.aggregate([{lookup: {from: \"singer\", localField: \"_id\", foreignField: \"Id\", as: \"singler\"}}, {$unwind: \"$singler\"}, {$match: {\"Singler.Name\": {$regex: \"(?=\\\\w+)\"}}}, {$count:",
+            "latency_ms": 68096.22
+        },
+        {
+            "query_id": "sample_36",
+            "database_id": "concert_singer",
+            "question": "What are the names of the singers and number of concerts for each person? ",
+            "gold_query": "db.singer.aggregate([{$lookup: {from: \"singer_in_concert\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"concerts\"}}, {$project: {_id: 0, name: \"$Name\", concert_count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.actors.aggregate([{$group: {_id: \"$Singer_ID\", count: {$sum: 1}}}, {$lookup: {from: \"singer\", localField: \"_id\", foreignField: \"ID\", as: \"singler\"}}, {$unwind: \"$singler\"}, {$project: {_idd: 0, name: \"$Singler.Name\", concert_count: \"$count\"}}])})db.singer.find({}, {Name: 2, _id: 3}).sort({Concert_Count: -1})} else {return {}};` if ($result.length === 0) return {}",
+            "latency_ms": 64140.78
+        },
+        {
+            "query_id": "sample_37",
+            "database_id": "concert_singer",
+            "question": "List all singer names in concerts in year 2014. ",
+            "gold_query": "db.singer_in_concert.aggregate([{$lookup: {from: \"concert\", localField: \"concert_ID\", foreignField: \"concert_ID\", as: \"concert_info\"}}, {$unwind: \"$concert_info\"}, {$match: {\"concert_info.Year\": 2014}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"singer_info\"}}, {$unwind: \"$singer_info\"}, {$project: {_id: 0, name: \"$singer_info.Name\"}}])",
+            "generated_query": "db.orchestra.aggregate([{$match:{Year:2004}}, {$lookup: {from:\"concert\", localField:\"Singer_ID\", foreignField:\"ID\", as:\"c\"}}, {$unwind: \"$c\"}, {$project: {_id: 0, name: \"$Name\"}}])}db.singer.find({Birth_Date: \"1965-07-31\"}, {FirstName: 1, _id: false})`",
+            "latency_ms": 50144.29
+        },
+        {
+            "query_id": "sample_38",
+            "database_id": "concert_singer",
+            "question": "What are the names of the singers who performed in a concert in 2014? ",
+            "gold_query": "db.singer_in_concert.aggregate([{$lookup: {from: \"concert\", localField: \"concert_ID\", foreignField: \"concert_ID\", as: \"concert_info\"}}, {$unwind: \"$concert_info\"}, {$match: {\"concert_info.Year\": 2014}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"singer_info\"}}, {$unwind: \"$singer_info\"}, {$project: {_id: 0, name: \"$singer_info.Name\"}}])",
+            "generated_query": "db.actors.aggregate([{$lookup: {from: \"concerts\", localField: \"Act_ID\", foreignField: 'Act_ID', as: \"conferences\"}}, {$unwind: \"$conferences\"}, {$match: {\"conferences.Year\": 2, Performances: {$ne: []}}}], {$project: {_id: 0, name: \"$Name\"}}])db.singer.find({Singer_Name: {$regex: \"(\\\\w+)\\\\b(Concert|Show)\\\\b\" }, Year_of_birth: {$gte: 1965}}, {Name: 3})} else {}",
+            "latency_ms": 70992.16
+        },
+        {
+            "query_id": "sample_39",
+            "database_id": "concert_singer",
+            "question": "what is the name and nation of the singer who have a song having 'Hey' in its name? ",
+            "gold_query": "db.song.aggregate([{$match: {Song_name: {$regex: \"Hey\"}}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"singer_info\"}}, {$unwind: \"$singer_info\"}, {$project: {_id: 0, name: \"$singer_info.Name\", nation: \"$singer_info.Country\"}}])",
+            "generated_query": "db.liked_singer.aggregate([{$match:{Song_name:\"Hey\"}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: ID, as: \"singler\"}, $unwind: \"$singler\"},",
+            "latency_ms": 74497.88
+        },
+        {
+            "query_id": "sample_40",
+            "database_id": "concert_singer",
+            "question": "What is the name and country of origin of every singer who has a song with the word 'Hey' in its title? ",
+            "gold_query": "db.song.aggregate([{$match: {Song_name: {$regex: \"Hey\"}}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: \"Singer_ID\", as: \"singer_info\"}}, {$unwind: \"$singer_info\"}, {$project: {_id: 0, name: \"$singer_info.Name\", country: \"$singer_info.Country\"}}])",
+            "generated_query": "db.liked_singer.aggregate([{$match: {Song_name: {$regex: \"hey\"}}}, {$lookup: {from: \"singer\", localField: \"Singer_ID\", foreignField: ID, as: \"singler\"}}, {$unwind: \"$singler\"}, {$project: {_id: 0, Name: \"$Singler.Name\", Country: \"$Country\"}}])db.song.find({Title: {$in: [\"Heey\"]}}, {Name: 1, Country: 2})$group:{_id:\"Name\",country_code:$country} $addFields:{code_country:$first(country_code",
+            "latency_ms": 65379.32
+        },
+        {
+            "query_id": "sample_41",
+            "database_id": "concert_singer",
+            "question": "Find the name and location of the stadiums which some concerts happened in the years of both 2014 and 2015. ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", let: {sid: \"$Stadium_ID\"}, pipeline: [{$match: {$expr: {$eq: [\"$Stadium_ID\", \"$$sid\"]}}}, {$group: {_id: null, years: {$addToSet: \"$Year\"}}}], as: \"concert_years\"}}, {$unwind: \"$concert_years\"}, {$match: {\"concert_years.years\": {$all: [2014, 2015]}}}, {$project: {_id: 0, name: \"$Name\", location: \"$Location\"}}])",
+            "generated_query": "db.venue.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"_id\", as: \"concerns\"}}, {$match: {\"concer ns\": {$all: [true, true]}}}, {$project: {_id: 0, name: \"$Name\", location: \"$Location\"}}])}db.stadium.find({Concerts: {$elemMatch: {$gte: 2, $lte: 3}}, Year: {$in: [\"2009\", \"2020\"]}}, {Year: 1, Name: 4})",
+            "latency_ms": 73027.48
+        },
+        {
+            "query_id": "sample_42",
+            "database_id": "concert_singer",
+            "question": "What are the names and locations of the stadiums that had concerts that occurred in both 2014 and 2015? ",
+            "gold_query": "db.stadium.aggregate([{$lookup: {from: \"concert\", let: {sid: \"$Stadium_ID\"}, pipeline: [{$match: {$expr: {$eq: [\"$Stadium_ID\", \"$$sid\"]}}}, {$group: {_id: null, years: {$addToSet: \"$Year\"}}}], as: \"concert_years\"}}, {$unwind: \"$concert_years\"}, {$match: {\"concert_years.years\": {$all: [2014, 2015]}}}, {$project: {_id: 0, name: \"$Name\", location: \"$Location\"}}])",
+            "generated_query": "db.venue.aggregate([{$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: 'ID', as: \"concerteries\"}}, {$match: {\"concerters\": {$all: [\"$Name\"]}}}, {$group: {_id: \"$Location\"}, count_concerts_20xx: {$sum: {$cond: [{$eq: [\"$$count_name_in_stadium_2XX\"], $gt: 0}}, 1, 0}}}, {collation: {locale: \"en_US\"}}, {project: {_date_field_: null, location_id:",
+            "latency_ms": 70533.55
+        },
+        {
+            "query_id": "sample_43",
+            "database_id": "concert_singer",
+            "question": "Find the number of concerts happened in the stadium with the highest capacity. ",
+            "gold_query": "db.stadium.aggregate([{$sort: {Capacity: -1}}, {$limit: 1}, {$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$project: {_id: 0, count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.venue.aggregate([{$group: {_id: \"$Capacity\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 2}, {$project: {_ID: 0, capacity: \"$_id\"}}])[\"capacity\"] * 5000;db.concert.find({}, {Stadium_ID: 3}).toArray().length",
+            "latency_ms": 76449.82
+        },
+        {
+            "query_id": "sample_44",
+            "database_id": "concert_singer",
+            "question": "What are the number of concerts that occurred in the stadium with the largest capacity? ",
+            "gold_query": "db.stadium.aggregate([{$sort: {Capacity: -1}}, {$limit: 1}, {$lookup: {from: \"concert\", localField: \"Stadium_ID\", foreignField: \"Stadium_ID\", as: \"concerts\"}}, {$project: {_id: 0, count: {$size: \"$concerts\"}}}])",
+            "generated_query": "db.venue.aggregate([{$group:{_id:\"count\",capacity:max(capacity)}}, {$sort:{capacity:-1}}, {$limit:1}, {$project:_id}])[\"$count\"]db.stadium.find({}, {Capacity: 0, _id: 1})[0].Capacity - 1",
+            "latency_ms": 63902.15
+        },
+        {
+            "query_id": "sample_45",
+            "database_id": "pets_1",
+            "question": "Find the number of pets whose weight is heavier than 10.",
+            "gold_query": "db.pets.countDocuments({weight: {$gt: 10}})",
+            "generated_query": "db.ontario_pets.countDocuments({weight: {$gt: 15}})db.pets.aggregate([{$match: {PetType: \"dog\"}}, {$group: {_id: \"$Weight\", count: {$sum: 2}}}, {$project: {_ID: 0, count: 3}}])}ogs.aggregate([function() {var query = {};query.weight > 8;return this.db.pet.find(query).count();}]})dogs.aggregate([document => document.PetType === 'cat', function() {this.db.pet.countDocuments().exec(function(err, result) {console.log(result)",
+            "latency_ms": 53074.17
+        },
+        {
+            "query_id": "sample_46",
+            "database_id": "pets_1",
+            "question": "How many pets have a greater weight than 10?",
+            "gold_query": "db.pets.countDocuments({weight: {$gt: 10}})",
+            "generated_query": "db.ontology_pet.countDocuments({weight: {$gt: 15}})db.pets.aggregate([{$match: {Weight: {$gte: 20, $lte: 30}}}, {$group: {_id: \"$PetID\"}}, {$count: \"count\"}])`",
+            "latency_ms": 26358.64
+        },
+        {
+            "query_id": "sample_47",
+            "database_id": "pets_1",
+            "question": "Find the weight of the youngest dog.",
+            "gold_query": "db.pets.find({PetType: \"dog\"}).sort({age: 1}).limit(1).project({weight: 1, _id: 0})",
+            "generated_query": "db.adopted_dogs.aggregate([{$group: {_id: null, min_weight: {$min: \"$weight\"}}}, {$project: {_idd: 0, minWeight: 1}}])[\"$minWeight\"]db.dog.find({}, {weight: 2, _id: 3})[0].weight",
+            "latency_ms": 53289.54
+        },
+        {
+            "query_id": "sample_48",
+            "database_id": "pets_1",
+            "question": "How much does the youngest dog weigh?",
+            "gold_query": "db.pets.find({PetType: \"dog\"}).sort({age: 1}).limit(1).project({weight: 1, _id: 0})",
+            "generated_query": "db.owners.aggregate([{$group: {_id: null, max_weight: {$max: \"$weight\"}}}, {$project: {_idd: 0, max_age: \"$_id\", max_weight}}])[\"$max_weight\"] * 1000 // Convert weight to kilograms and multiply by 1k for better readability",
+            "latency_ms": 56886.54
+        },
+        {
+            "query_id": "sample_49",
+            "database_id": "pets_1",
+            "question": "Find the maximum weight for each type of pet. List the maximum weight and pet type.",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", max_weight: {$max: \"$weight\"}}}, {$project: {_id: 0, pet_type: \"$_id\", max_weight: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", max_weight: {$max: \"$weight\"}}}, {$project: {_ID: 0, PetType: \"$_id\", MaxWeight: 1}}])db.pets.find({}, {Name: 2, Pet_ID: 3}).sort({Age: -1}) // Sorts by age in descending order",
+            "latency_ms": 53649.03
+        },
+        {
+            "query_id": "sample_50",
+            "database_id": "pets_1",
+            "question": "List the maximum weight and type for each type of pet.",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", max_weight: {$max: \"$weight\"}}}, {$project: {_id: 0, pet_type: \"$_id\", max_weight: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", max_weight: {$max: \"$Weight\"}}}, {$project: {_ID: 0, PetTypeName: \"$_id\", MaxWeight: 1}}])db.pets.find({}, {weight: 2, name: 3}).sort({pet_type_id: -1})} | $lookup: {from: \"pets_pets\", localField: \"_id\", foreignField: \"PetTypeId\", as: \"pp\"} | $unwind: {$each: [\"$pp\"]}$match: {\"pp.weight\": {$gt: 50",
+            "latency_ms": 53411.42
+        },
+        {
+            "query_id": "sample_51",
+            "database_id": "pets_1",
+            "question": "Find number of pets owned by students who are older than 20.",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$match: {\"student.Age\": {$gt: 20}}}, {$count: \"count\"}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$StuID\"}}, {$match: {Age: {$gt: 21}}}, {$count: \"num_owners\"}])db.has_pet.aggregate([{lookup: {from: \"pets\", localField: \"_id\", foreignField: \"PetID\", as: \"pet_info\"}}, {unwind: \"$pet_info\"}, {project: {_all: true}}])$addFields:{has_pets_count:$size(pet_info)}db.students.aggregate([{\"find\": {\"Hobby\": {$ne: null}}, $group: {student_id: {$",
+            "latency_ms": 57921.98
+        },
+        {
+            "query_id": "sample_52",
+            "database_id": "pets_1",
+            "question": "How many pets are owned by students that have an age greater than 20?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$match: {\"student.Age\": {$gt: 20}}}, {$count: \"count\"}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$StuID\"}}, {$match: {Age: {$gt: 21}}}, {$count: \"count\"}])db.has_pet.aggregate([{lookup: {from: \"pets\", localField: \"_id\", foreignField: \"Pet_ID\", as: \"pet_info\"}}, {unwind: \"$pet_info\"}, {match: {\"pet_info.PetType\": {$in: [\"cat\", \"dog\"]}}, $project: {_all: true}}])}db.student_pets.aggregate([{\"$lookup\": {from:\"students\",localField:\"St",
+            "latency_ms": 54628.4
+        },
+        {
+            "query_id": "sample_53",
+            "database_id": "pets_1",
+            "question": "Find the number of dog pets that are raised by female students (with sex F).",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": \"dog\", \"student.Sex\": \"F\"}}, {$count: \"count\"}])",
+            "generated_query": "db.adolescent.aggregate([{$group: {_id: \"$Hobbyist_ID\"}}, {$match: {Age_Group: \"F\", Hobbies: {$in: [\"dog\"]}}}, {$count: \"count\"}])db.habitat.find({Pet_type_id: 1, Pet_name: {$regex: \"feline\"}}, {Name: 0})$project:{_id: 2}db.student.aggregate([{lookup: {from: \"hobbyiste\", localField: \"_ID\", foreignField: \"HobbyIST_ID\", as: \"hs\"}}, {\"unwind\": \"$hs",
+            "latency_ms": 46542.26
+        },
+        {
+            "query_id": "sample_54",
+            "database_id": "pets_1",
+            "question": "How many dog pets are raised by female students?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": \"dog\", \"student.Sex\": \"F\"}}, {$count: \"count\"}])",
+            "generated_query": "db.adolescent.aggregate([{$group: {_id: \"$PetID\"}}, {$match: {Hobby: \"dog\", PetType: 1, Student_Pet_ID: {$in: [\"S023745689\"]}}}, {$count: \"count\"}])db.student_pet.aggregate([ {$lookup: {from: \"student_pets\", localField: \"_id\", foreignField: \"StuPId\", as: \"sp\"}} , {$unwind: \"$sp\"}, {$match:{Student_Pet_Name:\"female student pet name\"}},{$project: {_all: true}}",
+            "latency_ms": 47028.18
+        },
+        {
+            "query_id": "sample_55",
+            "database_id": "pets_1",
+            "question": "Find the number of distinct type of pets.",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\"}}, {$count: \"count\"}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\"}}, {$count: \"count\"}])db.pets.countDocuments() - 1) + 2",
+            "latency_ms": 47291.81
+        },
+        {
+            "query_id": "sample_56",
+            "database_id": "pets_1",
+            "question": "How many different types of pet are there?",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\"}}, {$count: \"count\"}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\"}}, {$count: \"count\"}])db.pets.countDocuments() - 1",
+            "latency_ms": 45019.7
+        },
+        {
+            "query_id": "sample_57",
+            "database_id": "pets_1",
+            "question": "Find the first name of students who have cat or dog pet.",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": {$in: [\"cat\", \"dog\"]}}}, {$group: {_id: \"$student.StuID\", Fname: {$first: \"$student.Fname\"}}}, {$project: {_id: 0, first_name: \"$Fname\"}}])",
+            "generated_query": "db.ado_pet.aggregate([{$group:{_id:\"name\",has_cat_or_dog:$or:[{PetType:\"cat\"},{PetName:new RegExp(\"dog\")}]}}], {$match:{has_cat_of_dog:true}}, {$project:{first_name:1, _id:0}}])db.has_pets.aggregate([{\"$lookup\": {from: \"pets\", localField: \"pet_id\", foreignField: \"_id\", as: \"p\"}}, {\"$unwind\": \"$p\"}, {\"$match\":{\"PetSpecies\":\"animal\",\"Has_Pet_Type\":[\"cat\",\"dog\"]}}], {projection",
+            "latency_ms": 46077.58
+        },
+        {
+            "query_id": "sample_58",
+            "database_id": "pets_1",
+            "question": "What are the first names of every student who has a cat or dog as a pet?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": {$in: [\"cat\", \"dog\"]}}}, {$group: {_id: \"$student.StuID\", Fname: {$first: \"$student.Fname\"}}}, {$project: {_id: 0, first_name: \"$Fname\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"pets\", localField: \"StuID\", foreignField: 'StuId', as: \"pets\"}}, {$match: {\"pets.PetType\": {$in: [\"cat\", \"dog\"]}}}, {$project: {_id: 0, name: \"$Name\"}}])db.pets.find({PetType: {$in:[\"cat\",\"dog\"]}}, {Pawel_name: 1, _id: false})$group:{_id:\"name\"}$project:name,_id:0}db.student.aggregate([{lookup:{\"",
+            "latency_ms": 47212.02
+        },
+        {
+            "query_id": "sample_59",
+            "database_id": "pets_1",
+            "question": "Find the first name of students who have both cat and dog pets.",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$group: {_id: \"$StuID\", types: {$addToSet: \"$pet.PetType\"}}}, {$match: {types: {$all: [\"cat\", \"dog\"]}}}, {$lookup: {from: \"student\", localField: \"_id\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$project: {_id: 0, first_name: \"$student.Fname\"}}])",
+            "generated_query": "db.adopted.aggregate([{$group: {_id: \"$StuID\", hasCat: {$max: {cond: {$eq: [\"$PetType\", \"cat\"]}}}, hasDog: {$min: {key: {\"PetName\": 1, _id: null}}}}}, {$match: {hasCat: 1 && hasDog > 0}}, {$project: {_ids: 0, student_first_name: \"$_id\"}}])})[\"student_first_name\"][0]db.has_pet.aggregate([{\"lookup\": {from: \"pets\", localField: \"_id\", foreignField: \"P",
+            "latency_ms": 46087.99
+        },
+        {
+            "query_id": "sample_60",
+            "database_id": "pets_1",
+            "question": "What are the students' first names who have both cats and dogs as pets?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$group: {_id: \"$StuID\", types: {$addToSet: \"$pet.PetType\"}}}, {$match: {types: {$all: [\"cat\", \"dog\"]}}}, {$lookup: {from: \"student\", localField: \"_id\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$project: {_id: 0, first_name: \"$student.Fname\"}}])",
+            "generated_query": "db.adopted.aggregate([{$group: {_id: \"$StuID\"}}, {$lookup: {from: \"pets\", localField: \"_id\", foreignField: \"PetID\", as: \"pet_info\"}}, {$match: {\"pet_info.PetType\": {$in: [\"cat\", \"dog\"]}}}, {$project: {_ids: 0, student_first_name: \"$_id\"}}])})[\"student_first_name\"].sort()[:10]db.has_pet.aggregate([{\"$group\": {_id:\"count_pets_in_stu_id\"}, \"has_cat_or_dog_count\":{\"$sum",
+            "latency_ms": 46903.69
+        },
+        {
+            "query_id": "sample_61",
+            "database_id": "pets_1",
+            "question": "Find the major and age of students who do not have a cat pet.",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {$or: [{pets: {$size: 0}}, {\"pets.PetType\": {$ne: \"cat\"}}]}}, {$project: {_id: 0, major: \"$Major\", age: \"$Age\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: 'StuId', as: \"hp\"}}, {$match: {\"hp.PetType\": \"cat\"}},{$project: {_id: 0, Major: \"$Major\", Age: \"$Age\"}}])}",
+            "latency_ms": 27766.92
+        },
+        {
+            "query_id": "sample_62",
+            "database_id": "pets_1",
+            "question": "What major is every student who does not own a cat as a pet, and also how old are they?",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {$or: [{pets: {$size: 0}}, {\"pets.PetType\": {$ne: \"cat\"}}]}}, {$project: {_id: 0, major: \"$Major\", age: \"$Age\"}}])",
+            "generated_query": "db.owners.aggregate([{$lookup: {from: \"pets\", localField: \"owner_id\", foreignField: \"_id\", as: \"pets\"}}, {$match: {\"pet.name\": {$ne: \"cat\"}}}, {$group: {_id: \"$name\", has_pet: {$max: {$cond: [{$eq: [\"$has_pets.pet_type_code\", 1]}, true, false]}}}}, {$project: {_ID: 0, name: \"$_id\", age: \"$age\", hasPet: 1}}])})db.has_pet.aggregate([{function(): Promise<unknown>",
+            "latency_ms": 46286.8
+        },
+        {
+            "query_id": "sample_63",
+            "database_id": "pets_1",
+            "question": "Find the id of students who do not have a cat pet.",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {$or: [{pets: {$size: 0}}, {\"pets.PetType\": {$ne: \"cat\"}}]}}, {$project: {_id: 0, student_id: \"$StuID\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"pets\", localField: \"StuID\", foreignField: 'StuId', as: \"p\"}}, {$match: {PetIDs: {$ne: []}}}, {$project: {_id: 0, StuID: \"$Stu_ID\"}}])}",
+            "latency_ms": 25190.29
+        },
+        {
+            "query_id": "sample_64",
+            "database_id": "pets_1",
+            "question": "What are the ids of the students who do not own cats as pets?",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {$or: [{pets: {$size: 0}}, {\"pets.PetType\": {$ne: \"cat\"}}]}}, {$project: {_id: 0, student_id: \"$StuID\"}}])",
+            "generated_query": "db.owners.aggregate([{$lookup: {from: \"pets\", localField: \"id\", foreignField: 'owner_id', as: \"pet\"}}, {$match: {Pet: {$size: 0}}}, {$project: {_id: 1, owner_id: \"$_id\"}}])db.pets.aggregate([{group: {_source: null, pet_type_name: {$addToSet: \"$PetType\"}, has_pet: {$or: [{has_pet_in_care: {$elemMatch: {\"Pet.PetID\": \"$Id\"}}], $expr: {$eq: [\"$Has_Pet_In_C",
+            "latency_ms": 46332.08
+        },
+        {
+            "query_id": "sample_65",
+            "database_id": "pets_1",
+            "question": "Find the first name and age of students who have a dog but do not have a cat as a pet.",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {\"pets.PetType\": \"dog\"}}, {$match: {\"pets.PetType\": {$ne: \"cat\"}}}, {$project: {_id: 0, first_name: \"$Fname\", age: \"$Age\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: 'StuId', as: \"hp\"}}, {$match: {\"hp.PetType\": {$ne: \"cat\"}}}])[\"Name\"] + \", \" + \"$Age\"db.has_pets.aggregate([{\"$group\": {_id: null, has_dog: {$sum: 1}}, {$project: {_id_: 0, count_of_has_dog_in_hospital: {$size: \"$has_dog\"}}}]})[\"$count_of_hasdog_in_hospitals\"].",
+            "latency_ms": 47287.72
+        },
+        {
+            "query_id": "sample_66",
+            "database_id": "pets_1",
+            "question": "What is the first name of every student who has a dog but does not have a cat?",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$lookup: {from: \"pets\", let: {pids: \"$hp.PetID\"}, pipeline: [{$match: {$expr: {$in: [\"$PetID\", \"$$pids\"]}}}], as: \"pets\"}}, {$match: {\"pets.PetType\": \"dog\"}}, {$match: {\"pets.PetType\": {$ne: \"cat\"}}}, {$project: {_id: 0, first_name: \"$Fname\", age: \"$Age\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: 'PetID', as: \"hp\"}}, {$match: {\"hp.PetType\": {$ne: \"cat\"}}}])[\"Name\"]})[\"$first_name\"]db.has_pets.aggregate([{\"$group\": {_id: \"$Pawel_ID\"}},{\"$project\": {_ids: 0, pet_id: \"$_id\"}}]).map(pet_ids)[$query] = [\"name\"];db.student.find({Hometown: \"Houston\"}, {First_Name: 1,",
+            "latency_ms": 47707.79
+        },
+        {
+            "query_id": "sample_67",
+            "database_id": "pets_1",
+            "question": "Find the type and weight of the youngest pet.",
+            "gold_query": "db.pets.find().sort({age: 1}).limit(1).project({PetType: 1, weight: 1, _id: 0})",
+            "generated_query": "db.owners.find({}, {PetType: 1, Weight: 0}) // {} means no fields to return",
+            "latency_ms": 47522.92
+        },
+        {
+            "query_id": "sample_68",
+            "database_id": "pets_1",
+            "question": "What type of pet is the youngest animal, and how much does it weigh?",
+            "gold_query": "db.pets.find().sort({age: 1}).limit(1).project({PetType: 1, weight: 1, _id: 0})",
+            "generated_query": "db.anioget.aggregate([{$group: {_id: \"$PetType\", count: {$sum: 1}}}, {$sort: {count: -1}}, {$limit: 2}, {$lookup: {from: \"pets\", localField: \"_id\", foreignField: \"PetID\", as: \"p\"}}, {$unwind: \"$p\"}, {$project: {_idd: 0, PetType: \"$_id\"}}])})[\"Pets\"][0][\"Weight\"] / 75;db.pets.find({}, {weight: 3648999});db.pet_type.aggregate([{",
+            "latency_ms": 47651.66
+        },
+        {
+            "query_id": "sample_69",
+            "database_id": "pets_1",
+            "question": "Find the id and weight of all pets whose age is older than 1.",
+            "gold_query": "db.pets.find({age: {$gt: 1}}, {PetID: 1, weight: 1, _id: 0})",
+            "generated_query": "db.ontology.find({age: {$gt: 1}}, {PetID: 0, Weight: 2})db.pets.aggregate([{$match: {Age: {$gte: 3}}}, {$project: {_id:  0 , PetID: \"$PetID\", weight: \"$weight\"}}])}",
+            "latency_ms": 25628.03
+        },
+        {
+            "query_id": "sample_70",
+            "database_id": "pets_1",
+            "question": "What is the id and weight of every pet who is older than 1?",
+            "gold_query": "db.pets.find({age: {$gt: 1}}, {PetID: 1, weight: 1, _id: 0})",
+            "generated_query": "db.owners.aggregate([{$match: {Age: {$gt: 1}}}, {$lookup: {from: \"pets\", localField: \"Id\", foreignField: 'Owner', as: \"pets\"}}, {$unwind: \"$pets\"}, {$project: {_id: 0, PetID: \"$Pets.PetID\", Weight: \"$Weight\"}}])db.pets.find({PetType: {$in: [\"cat\", \"dog\"]}}, {PetID: 2})$group:{_id:\"pet_id\"}$project:pets.id,pets.weight}db.pet.aggregate([{sort: {weight",
+            "latency_ms": 46132.29
+        },
+        {
+            "query_id": "sample_71",
+            "database_id": "pets_1",
+            "question": "Find the average and maximum age for each type of pet.",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", avg_age: {$avg: \"$age\"}, max_age: {$max: \"$age\"}}}, {$project: {_id: 0, pet_type: \"$_id\", avg_age: 1, max_age: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", avg_age: {$avg: \"$Age\"}, max_age: {max: {$max: \"$age\"}}}}, {$project: {_ID: 0, PetType: \"$_id\", avg_pet_age: 1, max_pet_age_max: 2}}])})}db.pets.find({}, {pet_type_id: 4}).sort({date_added: -1}).limit(5) // Limit to top 5 pets with date added in descending order",
+            "latency_ms": 47136.81
+        },
+        {
+            "query_id": "sample_72",
+            "database_id": "pets_1",
+            "question": "What is the average and maximum age for each pet type?",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", avg_age: {$avg: \"$age\"}, max_age: {$max: \"$age\"}}}, {$project: {_id: 0, pet_type: \"$_id\", avg_age: 1, max_age: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", avg_age: {$avg: \"$Age\"}, max_age: {max: {$max: \"$age\"}}}}, {$project: {_ID: 0, PetType: \"$_id\", avg_pet_age: 1, max_pet_age_in_years: 2}}])}",
+            "latency_ms": 27031.12
+        },
+        {
+            "query_id": "sample_73",
+            "database_id": "pets_1",
+            "question": "Find the average weight for each pet type.",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", avg_weight: {$avg: \"$weight\"}}}, {$project: {_id: 0, pet_type: \"$_id\", avg_weight: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", avg_weight: {$avg: \"$weight\"}}}, {$project: {_ID: 0, PetType: \"$_id\", avg_pet_weight: 1}}])}",
+            "latency_ms": 17974.59
+        },
+        {
+            "query_id": "sample_74",
+            "database_id": "pets_1",
+            "question": "What is the average weight for each type of pet?",
+            "gold_query": "db.pets.aggregate([{$group: {_id: \"$PetType\", avg_weight: {$avg: \"$weight\"}}}, {$project: {_id: 0, pet_type: \"$_id\", avg_weight: 1}}])",
+            "generated_query": "db.owners.aggregate([{$group: {_id: \"$PetType\", avg_weight: {$avg: \"$weight\"}}}, {$project: {_ID: 0, PetType: \"$_id\", avg_pet_weight: 1}}])db.pets.aggregate([{lookup: {from: \"pets_pawels\", localField: \"_id\", foreignField: \"pet_id\", as: \"paws\"}}, {$addFields: {\"num_of_paws\": {$size: \"$paws\"}}}, {match: {NumOfPaws: {$gt: 2}}}, {$group: {date_added: {$addTo",
+            "latency_ms": 44952.77
+        },
+        {
+            "query_id": "sample_75",
+            "database_id": "pets_1",
+            "question": "Find the first name and age of students who have a pet.",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$match: {hp: {$ne: []}}}, {$project: {_id: 0, first_name: \"$Fname\", age: \"$Age\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: 'StuId', as: \"hp\"}}, {$match: {\"hp.PetID\": 1}}, {$project: {_id: 0, student_first_name: \"$FirstName\", student_age: \"$Age\"}}])db.has_pet.aggregate([{\"$group\": {_id:\"count\"}, \"pet_count\": {$sum: 1}}], function(err, result) {",
+            "latency_ms": 47306.21
+        },
+        {
+            "query_id": "sample_76",
+            "database_id": "pets_1",
+            "question": "What are the different first names and ages of the students who do have pets?",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$match: {hp: {$ne: []}}}, {$project: {_id: 0, first_name: \"$Fname\", age: \"$Age\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"pets\", localField: \"StuID\", foreignField: 'StuId', as: \"p\"}}, {$match: {\"p.PetType\": {$in: [\"cat\"]}}}, {$group: {_id: \"$FirstName, $Age\"}, count: {$sum: 1}}, {$project: {_ids: 0, student_first_name: \"$_id.student_first_name\"}}])})[\"student_first_name\"].sort()db.pets.aggregate([{$addFields: {PetName: {$toLower: \"$name\"}}}]).distinct(\"",
+            "latency_ms": 47773.24
+        },
+        {
+            "query_id": "sample_77",
+            "database_id": "pets_1",
+            "question": "Find the id of the pet owned by student whose last name is ‘Smith’.",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$match: {\"student.LName\": \"Smith\"}}, {$project: {_id: 0, pet_id: \"$PetID\"}}])",
+            "generated_query": "db.own_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: 'StuId', as: \"s\"}}, {$unwind: \"$s\"}, {$match: {\"s.LName\": \"Smith\"}}, {_id: 0}])[\"$PetID\"]db.student.find({LName: \"Smith\"}, {StuNum: 1, _id: false})[0].Stu_num;db.pet.aggregate([{$group: {_id:\"$_id.PetID\"}},{$project:{pet_id: \"$_id\"}}]).map(x=>",
+            "latency_ms": 47544.39
+        },
+        {
+            "query_id": "sample_78",
+            "database_id": "pets_1",
+            "question": "What is the id of the pet owned by the student whose last name is 'Smith'?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$match: {\"student.LName\": \"Smith\"}}, {$project: {_id: 0, pet_id: \"$PetID\"}}])",
+            "generated_query": "db.owned_pet.aggregate([{$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"_id\", as: \"s\"}}, {$unwind: \"$s\"}, {$match: {\"s.LName\": \"Smith\"}}, {_id: 0}])[\"$PetID\"]db.student.find({LName: \"Smith\"}, {Student_ID: 1, _id: false})[\"Student_ID\"][0] if exists else null;db.pet.aggregate([{$lookup: ref: \"owner_pets\", from: \"pets\", let: {pet_id: \"$_id\"},",
+            "latency_ms": 55322.38
+        },
+        {
+            "query_id": "sample_79",
+            "database_id": "pets_1",
+            "question": "Find the number of pets for each student who has any pet and student id.",
+            "gold_query": "db.has_pet.aggregate([{$group: {_id: \"$StuID\", count: {$sum: 1}}}, {$project: {_id: 0, student_id: \"$_id\", pet_count: 1}}])",
+            "generated_query": "db.associations.aggregate([{$group:{_id:\"student_id\",pets:pets.countDocuments()}}, {$project:_id,pet_count:1}])db.pets.aggregate([{\"$lookup\": {from: \"students_enrolment\", localField: \"_id\", foreignField: \"StuID\", as: \"se\"}}, {\"$unwind\":\"s\"}, {\"$match\":{\"se.Pet_ID\":{$ne:null}}}, {\"count_documents\": 1}]})`",
+            "latency_ms": 42982.19
+        },
+        {
+            "query_id": "sample_80",
+            "database_id": "pets_1",
+            "question": "For students who have pets , how many pets does each student have ? list their ids instead of names .",
+            "gold_query": "db.has_pet.aggregate([{$group: {_id: \"$StuID\", count: {$sum: 1}}}, {$project: {_id: 0, student_id: \"$_id\", pet_count: 1}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"pets\", localField: \"StuID\", foreignField: 'StuId', as: \"p\"}}, {$project: {_id: 0, pet_id: \"$Pet_ID\"}}])db.pets.aggregate([{\"$group\": {\"_id\": null, count_pets: {$sum: 1}}}, {$match: {count_pets_gt: 2}}, {$project:{pet_name: \"$Name\"}}])}db.student.aggregate([{student_pet_count_pipeline: [{$addFields: {num_students_with_pet: {$size: \"$",
+            "latency_ms": 53348.1
+        },
+        {
+            "query_id": "sample_81",
+            "database_id": "pets_1",
+            "question": "Find the first name and gender of student who have more than one pet.",
+            "gold_query": "db.has_pet.aggregate([{$group: {_id: \"$StuID\", count: {$sum: 1}}}, {$match: {count: {$gt: 1}}}, {$lookup: {from: \"student\", localField: \"_id\", foreignField: \"StuID\", as: \"student_info\"}}, {$unwind: \"$student_info\"}, {$project: {_id: 0, first_name: \"$student_info.Fname\", gender: \"$student_info.Sex\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$group:{_id:\"student_id\",count:pets.countDocuments()}}, {$match:{count:{$gt:1}}}, {$lookup: {from: \"pets\", localField:_id, foreignField:\"StuID\", as:\"pet\"}}, {$unwind:\"pet\"}, {$project:{first_name:pet.PetFirst_Name,gender:pet.Dogs_Pet_Gender}}])})}db.pets.aggregate([{$group:{name:names.first_name}}, {$sort:name:-1}, {$limit:20}, {$replaceRoot:{newRoot:{\"PetList\":",
+            "latency_ms": 52738.98
+        },
+        {
+            "query_id": "sample_82",
+            "database_id": "pets_1",
+            "question": "What is the first name and gender of the all the students who have more than one pet?",
+            "gold_query": "db.has_pet.aggregate([{$group: {_id: \"$StuID\", count: {$sum: 1}}}, {$match: {count: {$gt: 1}}}, {$lookup: {from: \"student\", localField: \"_id\", foreignField: \"StuID\", as: \"student_info\"}}, {$unwind: \"$student_info\"}, {$project: {_id: 0, first_name: \"$student_info.Fname\", gender: \"$student_info.Sex\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$group: {_id: \"$StuID\", count: {$sum: 1}}}, {$match: {count: {$gt: 2}}}, {\"$lookup\": {from: \"student_pet\", localField: \"_id\", foreignField: \"Pet_ID\", as: \"sp\"}}, {$unwind: \"$sp\"}, {$project: {_ids: 0, student_first_name: \"$Student_First_Name\", student_gender: \"$Sp.Pet_Pets_Gender\"}}])})db.student.find({}, {Name: 3, Gender: 4}).sort({Age: -",
+            "latency_ms": 60842.53
+        },
+        {
+            "query_id": "sample_83",
+            "database_id": "pets_1",
+            "question": "Find the last name of the student who has a cat that is age 3.",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": \"cat\", \"pet.age\": 3}}, {$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$project: {_id: 0, last_name: \"$student.LName\"}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"pets\", localField: \"StuID\", foreignField: 'StuId', as: \"p\"}}, {$match: {\"p.PetType\": \"cat\", Age: 3}}, {$project: {_id: 0, LName: \"$Lname\"}}])}]}]})$eq\")}}) $in\"student_id\"}) {}{}[]{}[]}[]{}[{}][][][[[\"dog\"]]][][][][{age: 2}][]{state:\"CA\"},{\"PetType\":\"bird\",\"Age\":1,\"Hobby\":[\"",
+            "latency_ms": 57619.38
+        },
+        {
+            "query_id": "sample_84",
+            "database_id": "pets_1",
+            "question": "What is the last name of the student who has a cat that is 3 years old?",
+            "gold_query": "db.has_pet.aggregate([{$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"PetID\", as: \"pet\"}}, {$unwind: \"$pet\"}, {$match: {\"pet.PetType\": \"cat\", \"pet.age\": 3}}, {$lookup: {from: \"student\", localField: \"StuID\", foreignField: \"StuID\", as: \"student\"}}, {$unwind: \"$student\"}, {$project: {_id: 0, last_name: \"$student.LName\"}}])",
+            "generated_query": "db.announcements.aggregate([{$lookup: {from: \"pets\", localField: \"PetID\", foreignField: \"_id\", as: \"p\"}}, {$unwind: \"$p\"}, {$match: {\"p.PetType\": \"cat\", Age: 3}}, {$project: {_id: 0, Name: \"$Name\"}}])}]}]})}]])])])]])])])]]])}}}))]))))])))])])])]])])]], [{_id: null}], [1], [], [])])])]; return result; }]); })])])}; return result;}])])]]; return result []; }",
+            "latency_ms": 49612.65
+        },
+        {
+            "query_id": "sample_85",
+            "database_id": "pets_1",
+            "question": "Find the average age of students who do not have any pet.",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$match: {hp: {$size: 0}}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}}}, {$project: {_id: 0, avg_age: 1}}])",
+            "generated_query": "db.adolescent.aggregate([{$lookup: {from: \"hobby\", localField: \"StuID\", foreignField: 'StuId', as: \"has_pet\"}}, {$match: {\"has_pet\": {$size: 0}}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}}}])[\"avg_age\"]db.hobbies.aggregate([ {$project: {_ids: 1}}, {$addFields: {pet_count: {$sum: 2}}}], {$sort: {Pet_Count: -1}}, {}, {$limit: 5}, {$replaceRoot: {new",
+            "latency_ms": 49183.13
+        },
+        {
+            "query_id": "sample_86",
+            "database_id": "pets_1",
+            "question": "What is the average age for all students who do not own any pets ?",
+            "gold_query": "db.student.aggregate([{$lookup: {from: \"has_pet\", localField: \"StuID\", foreignField: \"StuID\", as: \"hp\"}}, {$match: {hp: {$size: 0}}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}}}, {$project: {_id: 0, avg_age: 1}}])",
+            "generated_query": "db.owners.aggregate([{$lookup: {from: \"pets\", localField: \"owner_id\", foreignField: \"_id\", as: \"pet\"}}, {$match: {Pet: {$size: 0}}}, {$group: {_id: null, avg_age: {$avg: \"$Age\"}}}])[\"avg_age\"] / 12;db.pets.find({state: \"available\"}, {age: 1})[0].weight * 456 / 3978 - 1000 + 1 = 1500",
+            "latency_ms": 50936.45
+        },
+        {
+            "query_id": "sample_87",
+            "database_id": "car_1",
+            "question": "How many continents are there?",
+            "gold_query": "db.continents.countDocuments()",
+            "generated_query": "db.continents.countDocuments()db.continents.find().countDocuments()",
+            "latency_ms": 49465.99
+        },
+        {
+            "query_id": "sample_88",
+            "database_id": "car_1",
+            "question": "What is the number of continents?",
+            "gold_query": "db.continents.countDocuments()",
+            "generated_query": "db.continents.countDocuments()db.continents.find().countDocuments(); // This will give you 1234567890",
+            "latency_ms": 50202.04
+        },
+        {
+            "query_id": "sample_89",
+            "database_id": "car_1",
+            "question": "How many countries does each continent have? List the continent id, continent name and the number of countries.",
+            "gold_query": "db.countries.aggregate([{$group: {_id: \"$Continent\", count: {$sum: 1}}}, {$lookup: {from: \"continents\", localField: \"_id\", foreignField: \"ContId\", as: \"c\"}}, {$unwind: \"$c\"}, {$project: {_id: 0, continent_id: \"$_id\", continent_name: \"$c.Continent\", count: 1}}])",
+            "generated_query": "db.IndepYear.aggregate([{$group: {_id: \"$Continent\", count: {$sum: 1}}}, {$project: {_ID: 0, continent_id: \"_id\", continent_name: \"$_id\", country_count: 2}}])db.CountryLanguage.aggregate([{lookup: {from: \"Country\", localField: \"Id\", foreignField: 'Code', as: \"c\"}}, {$unwind: \"$c\"}, {$match: {\"c.IsOfficial\": \"T\"}}], {$group: {continent_code: {$first: \"$contigency_code\"}, language: {$addToSet: \"$",
+            "latency_ms": 49162.35
+        },
+        {
+            "query_id": "sample_90",
+            "database_id": "car_1",
+            "question": "For each continent, list its id, name, and how many countries it has?",
+            "gold_query": "db.countries.aggregate([{$group: {_id: \"$Continent\", count: {$sum: 1}}}, {$lookup: {from: \"continents\", localField: \"_id\", foreignField: \"ContId\", as: \"c\"}}, {$unwind: \"$c\"}, {$project: {_id: 0, continent_id: \"$_id\", continent_name: \"$c.Continent\", count: 1}}])",
+            "generated_query": "db.IndepContinent.aggregate([{$group: {_id: \"$Name\", count: {$sum: 1}}}, {$project: {_ID: 0, country_count: 2}}, {$unwind: \"$country_count\"}, {$lookup: {from: \"Country\", localField: \"_id\", foreignField: \"Code\", as: \"c\"}}, {$unwinding: \"$c\"}, {$addFields: {\"continent_id\": \"$_id\"}}])})db.Country.find({}, {Id: 3, Name: 4}).sort({Continental_Code: -1}), function(err) {",
+            "latency_ms": 48962.44
+        },
+        {
+            "query_id": "sample_91",
+            "database_id": "car_1",
+            "question": "How many countries are listed?",
+            "gold_query": "db.countries.countDocuments()",
+            "generated_query": "db.Industries.aggregate([{$group: {_id: \"$Country\"}}, {$count: \"count\"}])db.CountryLanguage.aggregate([ {$match: {Language: {$in: [\"English\", \"Spanish\"]}} }, {$lookup: {from: \"Countries\", localField: \"_id\", foreignField: \"Code\", as: \"c\"}}, {unwind: \"$c\"}, {$project: {_ID: 0, country_name: \"$country.Name\"}}])})}db.Country.Language.countDocuments() + $sum(db.CountryLanguage.language_count) # This is the final answer!",
+            "latency_ms": 46371.57
+        },
+        {
+            "query_id": "sample_92",
+            "database_id": "car_1",
+            "question": "How many countries exist?",
+            "gold_query": "db.countries.countDocuments()",
+            "generated_query": "db.Indonesia.aggregate([{$count: \"country\"}])db.Country.countDocuments() # This is equivalent to the previous query",
+            "latency_ms": 54739.24
+        },
+        {
+            "query_id": "sample_93",
+            "database_id": "car_1",
+            "question": "How many models does each car maker produce? List maker full name, id and the number.",
+            "gold_query": "db.model_list.aggregate([{$group: {_id: \"$Maker\", count: {$sum: 1}}}, {$lookup: {from: \"car_makers\", localField: \"_id\", foreignField: \"Id\", as: \"maker_info\"}}, {$unwind: \"$maker_info\"}, {$project: {_id: 0, maker_id: \"$_id\", full_name: \"$maker_info.FullName\", count: 1}}])",
+            "generated_query": "db.automobile.aggregate([{$group: {_id: \"$Maker\", count: {$sum: 1}}}, {$project: {_ID: 0, fullName: \"$_id\", model_count: 2}}])",
+            "latency_ms": 67617.09
+        },
+        {
+            "query_id": "sample_94",
+            "database_id": "car_1",
+            "question": "What is the full name of each car maker, along with its id and how many models it produces?",
+            "gold_query": "db.model_list.aggregate([{$group: {_id: \"$Maker\", count: {$sum: 1}}}, {$lookup: {from: \"car_makers\", localField: \"_id\", foreignField: \"Id\", as: \"maker_info\"}}, {$unwind: \"$maker_info\"}, {$project: {_id: 0, maker_id: \"$_id\", full_name: \"$maker_info.FullName\", count: 1}}])",
+            "generated_query": "db.vehicles.aggregate([{$group: {_id: \"$Maker\", countModels: {$sum: 1}}}, {$lookup: {from: \"car_makers\", localField: \"_id\", foreignField: \"Id\", as: \"maker_info\"}}, {$unwind: \"$maker_info\"}, {$project: {_ID: 0, model_count: \"$countModels\", FullName: \"$make_name\"}}])})db.car_names.aggregate([{$match: {\"Model\": {$ne: \"\"}}}, {sort: {Year: -1}}, {$limit: 50}, {$addFields: {model_number: {$",
+            "latency_ms": 71447.24
+        },
+        {
+            "query_id": "sample_95",
+            "database_id": "car_1",
+            "question": "Which model of the car has the minimum horsepower?",
+            "gold_query": "db.cars_data.aggregate([{$sort: {Horsepower: 1}}, {$limit: 1}, {$lookup: {from: \"car_names\", localField: \"Id\", foreignField: \"MakeId\", as: \"car_info\"}}, {$unwind: \"$car_info\"}, {$project: {_id: 0, model: \"$car_info.Model\"}}])",
+            "generated_query": "db.vehicles.find({}, {Model: 1, _id: 0}).sort({Horsepower: 2})[0]#db.cars_data.aggregate([{$group: {_id: \"$Model\", min_horsepower_count: {$sum: 3}}}, {$match: {min_horse power_count: 4}}, {$project: {_ID: 5, Model: \"$_id\"}}]) #model name is \"Toyota Corolla\" and its price is $6789.99",
+            "latency_ms": 53349.38
+        },
+        {
+            "query_id": "sample_96",
+            "database_id": "car_1",
+            "question": "What is the model of the car with the smallest amount of horsepower?",
+            "gold_query": "db.cars_data.aggregate([{$sort: {Horsepower: 1}}, {$limit: 1}, {$lookup: {from: \"car_names\", localField: \"Id\", foreignField: \"MakeId\", as: \"car_info\"}}, {$unwind: \"$car_info\"}, {$project: {_id: 0, model: \"$car_info.Model\"}}])",
+            "generated_query": "db.vehicles.find({}, {Model: 1, _id: 0}).sort({Horsepower: 2})[0]#db.cars_data.aggregate([{$group: {_id: \"$Id\", count: {$sum: \"HorsePower\"}}}, {$sort: {count: -1}}, {$limit: 3}, {$lookup: {from: \"car_names\", localField: \"_id\", foreignField: \"MakeId\", as: \"carnames\"}}, {$unwind: \"$carname\"}, {$project: {_ID:  0, Model: \"$carsdata.Model\", Car",
+            "latency_ms": 47870.37
+        },
+        {
+            "query_id": "sample_97",
+            "database_id": "car_1",
+            "question": "Find the model of the car whose weight is below the average weight.",
+            "gold_query": "db.cars_data.aggregate([{$group: {_id: null, avg_weight: {$avg: \"$Weight\"}}}, {$lookup: {from: \"cars_data\", let: {avg: \"$avg_weight\"}, pipeline: [{$match: {$expr: {$lt: [\"$Weight\", \"$$avg\"]}}}, {$lookup: {from: \"car_names\", localField: \"Id\", foreignField: \"MakeId\", as: \"car_info\"}}, {$unwind: \"$car_info\"}, {$project: {_id: 0, model: \"$car_info.Model\"}}], as: \"result\"}}, {$unwind: \"$result\"}, {$replaceRoot: {newRoot: \"$result\"}}])",
+            "generated_query": "db.vehicles.aggregate([{$group: {_id: null, avg_weight: {$avg: \"$Weight\"}}}, {$match: {avg_weight:{$lt: 20}}}, {$project: {_ID: 0, Model: \"$Model\", Weight: 1}}])}db.car_names.find({Car_ID: \"C63\"}, {Name: 4})`",
+            "latency_ms": 31794.03
+        },
+        {
+            "query_id": "sample_98",
+            "database_id": "car_1",
+            "question": "What is the model for the car with a weight smaller than the average?",
+            "gold_query": "db.cars_data.aggregate([{$group: {_id: null, avg_weight: {$avg: \"$Weight\"}}}, {$lookup: {from: \"cars_data\", let: {avg: \"$avg_weight\"}, pipeline: [{$match: {$expr: {$lt: [\"$Weight\", \"$$avg\"]}}}, {$lookup: {from: \"car_names\", localField: \"Id\", foreignField: \"MakeId\", as: \"car_info\"}}, {$unwind: \"$car_info\"}, {$project: {_id: 0, model: \"$car_info.Model\"}}], as: \"result\"}}, {$unwind: \"$result\"}, {$replaceRoot: {newRoot: \"$result\"}}])",
+            "generated_query": "db.vehicles.aggregate([{$group: {_id: null, avg_weight: {$avg: \"$Weight\"}}}, {$match: {avg_weight:{$lt:$1}}}, {$lookup: {from:\"car_names\", localField:_id, foreignField:\"Id\", as:\"carnames\"}}, {$unwind: \"$carname\"}, {$project: {_ID: 0, Model: \"$Model\"}}])})db.cars_data.find({Weight: {$lt: db.car_names.avg(Weight)}}).sort({_id: -1}).limit(1)",
+            "latency_ms": 45762.56
+        },
+        {
+            "query_id": "sample_99",
+            "database_id": "car_1",
+            "question": "Find the name of the makers that produced some cars in the year of 1970?",
+            "gold_query": "db.cars_data.aggregate([{$match: {Year: 1970}}, {$lookup: {from: \"car_names\", localField: \"Id\", foreignField: \"MakeId\", as: \"car_info\"}}, {$unwind: \"$car_info\"}, {$lookup: {from: \"model_list\", localField: \"car_info.Model\", foreignField: \"Model\", as: \"model_info\"}}, {$unwind: \"$model_info\"}, {$lookup: {from: \"car_makers\", localField: \"model_info.Maker\", foreignField: \"Id\", as: \"maker_info\"}}, {$unwind: \"$maker_info\"}, {$group: {_id: \"$maker_info.Maker\"}}, {$project: {_id: 0, maker_name: \"$_id\"}}])",
+            "generated_query": "db.vehicles.aggregate([{$group: {_id: \"$Maker\", count: {$sum: 1}}}, {$match: {count: {$gte: 2, $lte: 5}}}, {\"$lookup\": {from: \"car_names\", localField: \"_id\", foreignField: \"Id\", as: \"c\"}}, {$unwind: \"$c\"}, {$project: {_ID: 0, maker_name: \"$_id\"}}])})[\"maker_name\"] : []} else return []; } })] if ($year > 1863) && ($model == null || model.length === 0",
+            "latency_ms": 49891.92
+        }
+    ]
+}
