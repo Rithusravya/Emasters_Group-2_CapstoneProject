@@ -16,7 +16,7 @@ class LargeLLMGenerator:
         self.local_model_name = local_model_name
         self.client = None
         self.config = config
-        self.api_key_env_name = "api-key"
+        self.api_key_env_name = "AQ.Ab8RN6LYk_zAboKW6v9M4NXgIwTOkRH87YL4uZwaOMgzDwptVA"
 
         # Override with config if provided
         if config and hasattr(config, "llm_baseline"):

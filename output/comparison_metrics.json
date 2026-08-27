@@ -1,34 +1,31 @@
 {
   "comparison_results": {
     "Base_Model": {
-      "BLEU": 0.169,
-      "ROUGE-1": 0.5516,
-      "ROUGE-L": 0.5229,
-      "BERTScore": 0.9046,
-      "Exact_Match": 0.0,
-      "Response_Accuracy": 0.8915
+      "BLEU": 0.2259,
+      "ROUGE-1": 0.5598,
+      "ROUGE-L": 0.456,
+      "BERTScore": 0.8759,
+      "Response_Accuracy": 0.952
     },
     "LoRA_Model": {
-      "BLEU": 0.1614,
-      "ROUGE-1": 0.4963,
-      "ROUGE-L": 0.472,
-      "BERTScore": 0.8787,
-      "Exact_Match": 0.0,
-      "Response_Accuracy": 0.8582
+      "BLEU": 0.1654,
+      "ROUGE-1": 0.5048,
+      "ROUGE-L": 0.4199,
+      "BERTScore": 0.865,
+      "Response_Accuracy": 0.952
     },
     "RAG_Pipeline": {
-      "BLEU": 0.0108,
-      "ROUGE-1": 0.3863,
-      "ROUGE-L": 0.3668,
-      "BERTScore": 0.8288,
-      "Exact_Match": 0.0,
-      "Response_Accuracy": 0.6467
+      "BLEU": 0.0044,
+      "ROUGE-1": 0.2413,
+      "ROUGE-L": 0.2329,
+      "BERTScore": 0.7694,
+      "Response_Accuracy": 0.6293
     }
   },
   "latency_ms": {
-    "Base_Model": 54359.04653180005,
-    "LoRA_Model": 68160.6798937999,
-    "RAG_Pipeline": 42717.85978660009
+    "Base_Model": 20406.31779659998,
+    "LoRA_Model": 25386.98793980002,
+    "RAG_Pipeline": 33930.674841600194
   },
   "eval_sample_count": 5,
   "best_k": 2

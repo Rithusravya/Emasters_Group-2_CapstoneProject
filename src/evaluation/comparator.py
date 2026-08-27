@@ -59,8 +59,8 @@ class ModelComparator:
             )
             
             # Exact & Response Accuracy
-            exact_matches = [self.metrics.compute_exact_match(r, p) for r, p in zip(references, preds)]
-            cat_metrics["Exact_Match_Accuracy"] = round(sum(exact_matches) / len(exact_matches), 4) if exact_matches else 0.0
+            # exact_matches = [self.metrics.compute_exact_match(r, p) for r, p in zip(references, preds)]
+            # cat_metrics["Exact_Match_Accuracy"] = round(sum(exact_matches) / len(exact_matches), 4) if exact_matches else 0.0
             
             resp_acc = [self.metrics.compute_response_accuracy(r, p) for r, p in zip(references, preds)]
             cat_metrics["Response_Accuracy"] = round(sum(resp_acc) / len(resp_acc), 4) if resp_acc else 0.0

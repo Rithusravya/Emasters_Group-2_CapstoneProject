@@ -225,19 +225,19 @@ class EvaluationMetrics:
         except Exception:
             return s
 
-    @classmethod
-    def compute_exact_match(cls, gold: str, pred: str) -> float:
-        if not gold or not pred:
-            return 0.0
+    # @classmethod
+    # def compute_exact_match(cls, gold: str, pred: str) -> float:
+    #     if not gold or not pred:
+    #         return 0.0
 
-        def normalize(s):
-            s = s.strip().rstrip(';')
-            s = s.replace("'", '"')            # Normalize single quotes to double quotes
-            s = cls._canonicalize_mql(s)       # Order-independent object-key comparison
-            s = re.sub(r'\s+', '', s)          # Remove all remaining whitespace
-            return s.lower()
+    #     def normalize(s):
+    #         s = s.strip().rstrip(';')
+    #         s = s.replace("'", '"')            # Normalize single quotes to double quotes
+    #         s = cls._canonicalize_mql(s)       # Order-independent object-key comparison
+    #         s = re.sub(r'\s+', '', s)          # Remove all remaining whitespace
+    #         return s.lower()
 
-        return 1.0 if normalize(gold) == normalize(pred) else 0.0
+    #     return 1.0 if normalize(gold) == normalize(pred) else 0.0
 
     @staticmethod
     def _tokenize_mql(query: str) -> List[str]:

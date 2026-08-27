@@ -25,14 +25,14 @@ class RAGEvaluator:
 
         rag_metrics = {
             "BLEU": self.metrics.compute_bleu(references, rag_preds),
-            "BERTScore": self.metrics.compute_bertscore(references, rag_preds, device=self.comparator.device, model_type=bertscore_model),
-            "Exact_Match_Accuracy": round(sum([self.metrics.compute_exact_match(r, p) for r, p in zip(references, rag_preds)]) / len(references), 4)
+            "BERTScore": self.metrics.compute_bertscore(references, rag_preds, device=self.comparator.device, model_type=bertscore_model)
+            # "Exact_Match_Accuracy": round(sum([self.metrics.compute_exact_match(r, p) for r, p in zip(references, rag_preds)]) / len(references), 4)
         }
         
         baseline_metrics = {
             "BLEU": self.metrics.compute_bleu(references, lora_preds),
-            "BERTScore": self.metrics.compute_bertscore(references, lora_preds, device=self.comparator.device, model_type=bertscore_model),
-            "Exact_Match_Accuracy": round(sum([self.metrics.compute_exact_match(r, p) for r, p in zip(references, lora_preds)]) / len(references), 4)
+            "BERTScore": self.metrics.compute_bertscore(references, lora_preds, device=self.comparator.device, model_type=bertscore_model)
+            # "Exact_Match_Accuracy": round(sum([self.metrics.compute_exact_match(r, p) for r, p in zip(references, lora_preds)]) / len(references), 4)
         }
         
         gain = {k: round(rag_metrics[k] - baseline_metrics[k], 4) for k in rag_metrics}
