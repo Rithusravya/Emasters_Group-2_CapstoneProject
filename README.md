@@ -6,8 +6,6 @@
 
 A capstone project (eMasters CS: AI & ML, Group 2) that fine-tunes a small open-source code language model — **Qwen2.5-Coder-0.5B-Instruct** — with **LoRA**, builds a **hybrid semantic + structural (AST/MQL) retrieval (RAG)** layer on top of it, and evaluates the result against the un-adapted base model, across **natural-language-to-MongoDB-query (Text-to-MongoDB)** generation, plus supporting documentation-generation, program-synthesis, and commit-message-generation tasks.
 
-> **Note on scope:** the project's primary evaluated task is **Text-to-MongoDB**, generated from the Spider text-to-SQL benchmark's natural-language questions. Documentation, program-synthesis, and commit-message generators are also implemented and share the same generation/evaluation machinery, but are exercised on small hand-authored example sets rather than a benchmark.
-
 ---
 
 ## Table of Contents
@@ -156,7 +154,7 @@ Numbers below are taken directly from `output/generated/baseline_model_results.j
 
 LoRA fine-tuning improves every metric substantially — Response Accuracy roughly doubles and BLEU moves from near-zero to 0.20 — at the cost of higher per-query latency.
 
-### Base vs. LoRA vs. RAG (5-question comparison slice, `output/comparison_metrics.json`)
+### Base vs. LoRA vs. RAG (5-question comparison, `output/comparison_metrics.json`)
 
 | Metric | Base Model | LoRA Model | RAG Pipeline |
 |---|:---:|:---:|:---:|
@@ -416,7 +414,6 @@ outputs:
 
 See `requirements.txt` for the full pinned list.
 
----
 ---
 
 ## Contributing
