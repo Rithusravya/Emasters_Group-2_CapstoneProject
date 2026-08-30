@@ -38,7 +38,7 @@ llm_baseline:
   backend: "api"  # Options: 'local' or 'api'
   local_model: "Qwen/Qwen2.5-Coder-0.5B-Instruct"
   api_model: "gemini-3.6-flash"
-  api_key_env: "AQ.Ab8RN6LYk_zAboKW6v9M4NXgIwTOkRH87YL4uZwaOMgzDwptVA"
+  api_key_env: "api-key"
   max_new_tokens: 256
   temperature: 0.2
 
